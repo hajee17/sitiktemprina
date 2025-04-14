@@ -12,9 +12,6 @@ class DashboardController extends Controller
     {
         return view('dashboard', [
             'totalTickets' => Ticket::count(),
-            'inProgressTickets' => Ticket::where('status', 'in_progress')->count(),
-            'resolvedTickets' => Ticket::where('status', 'resolved')->count(),
-            'categories' => Category::all(),
         ]);
     }
 }
