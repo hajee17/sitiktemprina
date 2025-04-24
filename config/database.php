@@ -76,6 +76,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            'options' => [
+                PDO::ATTR_CASE => PDO::CASE_NATURAL,
+            ],
         ],
 
         'sqlsrv' => [
