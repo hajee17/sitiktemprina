@@ -5,7 +5,7 @@
     <h2 class="text-2xl font-bold text-center mb-4">Buat Tiket Baru</h2>
     <p class="text-center text-gray-500 mb-8">Silahkan isi formulir berikut untuk membuat tiket baru.</p>
 
-    <form action="{{ route('ticket.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+    <form action="{{ route('tickets.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
 
         {{-- Sub Bisnis Unit --}}
@@ -24,7 +24,7 @@
             <select id="Dept" name="Dept" required class="w-full border border-gray-300 rounded-lg p-3">
                 <option value="">Pilih Divisi / Departemen Anda</option>
                 @foreach ($departments as $department)
-                    <option value="{{ $department->name }}">{{ $department->name }}</option>
+                    <option value="{{ $department }}">{{ $department}}</option>
                 @endforeach
             </select>
         </div>
@@ -35,7 +35,7 @@
             <select id="Position" name="Position" required class="w-full border border-gray-300 rounded-lg p-3">
                 <option value="">Pilih Jabatan Anda</option>
                 @foreach ($positions as $position)
-                    <option value="{{ $position->name }}">{{ $position->name }}</option>
+                    <option value="{{ $position }}">{{ $position }}</option>
                 @endforeach
             </select>
         </div>
@@ -52,7 +52,7 @@
             <select id="Category" name="Category" required class="w-full border border-gray-300 rounded-lg p-3">
                 <option value="">Pilih Kategori Tiket</option>
                 @foreach ($categories as $category)
-                    <option value="{{ $category->name }}">{{ $category->name }}</option>
+                    <option value="{{ $category}}">{{ $category}}</option>
                 @endforeach
             </select>
         </div>

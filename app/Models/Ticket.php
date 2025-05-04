@@ -11,9 +11,12 @@ class Ticket extends Model
 
     protected $table = 'tickets';
     protected $primaryKey = 'ID_Ticket';
-    public $timestamps = false;
-    public $incrementing = true; 
+    public $timestamps = true;
+    public $incrementing = false; 
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'ID_Ticket',
         'SBU',
         'Dept',
         'Position',
@@ -22,6 +25,7 @@ class Ticket extends Model
         'Location',
         'Desc',
         'Attc',
+        'priority',
         'ID_Account'
     ];
 
@@ -65,4 +69,68 @@ class Ticket extends Model
             'ID_Account' // Primary key di tabel account
         );
     }
+
+    public function index()
+{
+    // Hitung total semua tiket
+    $totalTiket = Ticket::count();
+
+    // Hitung tiket yang masih diproses (status bukan 'Selesai')
+    $tiketDiproses = Status::where('Status', '!=', 'Selesai')->distinct('ID_Ticket')->count('ID_Ticket');
+
+    // Hitung tiket yang sudah selesai
+    $tiketSelesai = Status::where('Status', 'Selesai')->distinct('ID_Ticket')->count('ID_Ticket');
+
+    return view('dashboard', compact('totalTiket', 'tiketDiproses', 'tiketSelesai'));
+    }
+    public function getCreatedAtFormattedAttribute()
+    {
+    return $this->created_at?->isoFormat('D MMM Y HH:mm') ?? '-';
+    }
+    public function latestStatus() {
+    return $this->hasOne(Status::class, 'ID_Ticket')->latest('Update_Time');
+    }
+
+    public function tickets()
+    {
+    return $this->hasMany(Ticket::class, 'ID_Account');
+    }
+
+    public function take($id)
+{
+    // Cari tiket
+    $ticket = Ticket::findOrFail($id);
+    
+    // Validasi bahwa tiket belum diambil
+    if ($ticket->status->Status !== 'Baru') {
+        return back()->with('error', 'Tiket sudah diambil oleh orang lain');
+    }
+    
+    // Update status tiket
+    $ticket->status()->updateOrCreate(
+        ['ID_Ticket' => $ticket->ID_Ticket],
+        [
+            'Status' => 'Diproses',
+            'Update_Time' => now(),
+            'Desc' => 'Tiket diambil oleh developer',
+            'ID_Account' => auth()->id() // ID developer yang mengambil
+        ]
+    );
+    
+    return redirect()->route('developer.tickets.index')
+        ->with('success', 'Tiket berhasil diambil');
+}
+
+
+// Accessor untuk memudahkan pengecekan
+public function getCurrentStatusAttribute()
+{
+    return optional($this->status)->Status ?? 'Baru';
+}
+
+public function statusHistory()
+{
+    return $this->hasMany(Status::class, 'ID_Ticket', 'ID_Ticket')
+                ->orderBy('Update_Time', 'desc');
+}
 }

@@ -1,97 +1,122 @@
-@extends('layouts.developer')
+@extends('layouts.app')
 
 @section('content')
-<div class="w-full h-screen bg-[#F5F6FA] flex flex-col">
-    <!-- Header -->
-    <div class="flex justify-between items-center px-10 py-3 bg-white w-[calc(100%-280px)] ml-[280px] fixed top-0 z-50">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-[#1F1F1F] relative">
-                <div class="absolute w-6 h-6 bg-black rounded-full top-2 left-2"></div>
-            </div>
-            <div>
-                <p class="font-bold text-sm text-[#404040]">Hafidz Irham</p>
-                <p class="text-xs font-medium text-[#565656]">Developer</p>
-            </div>
+<div class="container">
+    <h1 class="text-xl font-bold mb-4">Kelola Tiket</h1>
+
+    <!-- Statistik -->
+    <div class="grid grid-cols-5 gap-4 mb-6">
+        @foreach ($stats as $label => $value)
+        <div class="bg-white shadow rounded p-4 text-center">
+            <div class="text-sm font-semibold uppercase">{{ ucwords(str_replace('_', ' ', $label)) }}</div>
+            <div class="text-2xl font-bold">{{ number_format($value) }}</div>
         </div>
+        @endforeach
     </div>
 
-    <!-- Main Content -->
-    <div class="mt-[80px] ml-[280px] px-10 py-6 w-[calc(100%-280px)] overflow-auto">
-        <h1 class="text-2xl font-semibold text-[#1F1F1F] mb-6">Kelola Tiket</h1>
+    <!-- Tabel Tiket -->
+    <div class="bg-white shadow rounded">
+        <table class="w-full table-auto text-sm">
+            <thead>
+                <tr class="bg-gray-100 text-left">
+                    <th class="p-3">ID Tiket</th>
+                    <th>Prioritas</th>
+                    <th>Judul</th>
+                    <th>Kategori</th>
+                    <th>Pelapor</th>
+                    <th>Tanggal Dibuat</th>
+                    <th>Status</th>
+                    <th>Developer</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($tickets as $ticket)
+                <tr class="border-t">
+                    <td class="p-3">{{ $ticket->id }}</td>
+                    <td><span class="text-red-600 font-bold">{{ $ticket->prioritas }}</span></td>
+                    <td>{{ $ticket->judul }}</td>
+                    <td>{{ $ticket->kategori }}</td>
+                    <td>{{ $ticket->pelapor }}</td>
+                    <td>{{ $ticket->created_at->format('j M Y, H:i') }}</td>
+                    <td><span class="bg-yellow-200 px-2 py-1 rounded">{{ $ticket->status }}</span></td>
+                    <td>{{ $ticket->developer }}</td>
+                    <td class="space-x-2">
+                        <button onclick="openModal('detail', {{ $ticket }})">🔍</button>
+                        <button onclick="openModal('edit', {{ $ticket }})">✏️</button>
+                        <form action="{{ route('developer.tickets.destroy', $ticket->id) }}" method="POST" class="inline">
+                            @csrf @method('DELETE')
+                            <button onclick="return confirm('Hapus tiket ini?')">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <div class="p-3">{{ $tickets->links() }}</div>
+    </div>
+</div>
 
-        <!-- Cards -->
-        <div class="grid grid-cols-5 gap-4 mb-6">
-            @php
-                $cards = [
-                    ['label' => 'Prioritas Tinggi (Baru)', 'icon' => '🔥', 'color' => 'text-red-500'],
-                    ['label' => 'Tiket Baru', 'icon' => '📥', 'color' => 'text-blue-500'],
-                    ['label' => 'Tiket Diproses', 'icon' => '⏳', 'color' => 'text-indigo-500'],
-                    ['label' => 'Tiket Selesai', 'icon' => '🏁', 'color' => 'text-green-500'],
-                    ['label' => 'Total Tiket', 'icon' => '📋', 'color' => 'text-black'],
-                ];
-            @endphp
-            @foreach($cards as $card)
-                <div class="bg-white rounded-xl p-4 shadow border border-gray-200 flex flex-col gap-2">
-                    <p class="text-gray-500 text-sm">{{ $card['label'] }}</p>
-                    <div class="text-2xl font-bold tracking-wide text-black">999.999.999</div>
-                    <div class="{{ $card['color'] }} text-xl">{{ $card['icon'] }}</div>
+<!-- Modal -->
+<div id="ticketModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg w-[500px] p-6 relative">
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-lg">✖️</button>
+
+        <div id="modalDetail" class="hidden">
+            <h2 class="text-lg font-bold mb-2">Detail Tiket</h2>
+            <div><strong>ID:</strong> <span id="detailId"></span></div>
+            <div><strong>Judul:</strong> <span id="detailJudul"></span></div>
+            <div><strong>Status:</strong> <span id="detailStatus"></span></div>
+            <!-- Tambahkan elemen lain sesuai kebutuhan -->
+        </div>
+
+        <div id="modalEdit" class="hidden">
+            <h2 class="text-lg font-bold mb-2">Edit Tiket</h2>
+            <form id="editForm" method="POST">
+                @csrf @method('PUT')
+                <input type="hidden" name="id" id="editId">
+                <div class="mb-2">
+                    <label>Judul</label>
+                    <input type="text" name="judul" id="editJudul" class="w-full border rounded px-2 py-1">
                 </div>
-            @endforeach
-        </div>
-
-        <!-- Search bar -->
-        <input type="text" placeholder="Cari data akun..." class="w-full mb-4 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-
-        <!-- Table -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white text-left border border-gray-300 rounded-lg">
-                <thead class="bg-black text-white">
-                    <tr>
-                        <th class="px-4 py-3">ID Tiket</th>
-                        <th class="px-4 py-3">Prioritas</th>
-                        <th class="px-4 py-3">Judul</th>
-                        <th class="px-4 py-3">Kategori</th>
-                        <th class="px-4 py-3">Pelapor</th>
-                        <th class="px-4 py-3">Tanggal dibuat</th>
-                        <th class="px-4 py-3">Status</th>
-                        <th class="px-4 py-3">Developer</th>
-                        <th class="px-4 py-3">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($tickets as $ticket)
-                    <tr class="border-b border-gray-200">
-                        <td class="px-4 py-2">{{ $ticket->ticket_id }}</td>
-                        <td class="px-4 py-2">
-                            <span class="text-white text-xs px-2 py-1 bg-red-500 rounded-full">Tinggi</span>
-                        </td>
-                        <td class="px-4 py-2">{{ $ticket->title }}</td>
-                        <td class="px-4 py-2">{{ $ticket->category }}</td>
-                        <td class="px-4 py-2">{{ $ticket->reporter }}</td>
-                        <td class="px-4 py-2">{{ \Carbon\Carbon::parse($ticket->created_at)->format('d M Y, H:i') }}</td>
-                        <td class="px-4 py-2">
-                            <span class="text-yellow-600 text-xs px-2 py-1 bg-yellow-100 border border-yellow-300 rounded-full">Diproses</span>
-                        </td>
-                        <td class="px-4 py-2">{{ $ticket->developer }}</td>
-                        <td class="px-4 py-2 flex gap-2">
-                            <a href="{{ route('ticket.show', $ticket->id) }}" class="text-blue-500 hover:text-blue-700">🔍</a>
-                            <a href="{{ route('ticket.edit', $ticket->id) }}" class="text-gray-700 hover:text-gray-900">✏️</a>
-                            <form action="{{ route('ticket.destroy', $ticket->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus tiket ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:text-red-700">🗑️</button>
-                            </form>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="flex justify-end mt-4">
-            {{ $tickets->links() }}
+                <div class="mb-2">
+                    <label>Status</label>
+                    <select name="status" id="editStatus" class="w-full border rounded px-2 py-1">
+                        <option>Baru</option>
+                        <option>Diproses</option>
+                        <option>Selesai</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Simpan</button>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+    function openModal(type, ticket) {
+        const modal = document.getElementById('ticketModal');
+        const modalDetail = document.getElementById('modalDetail');
+        const modalEdit = document.getElementById('modalEdit');
+        modal.classList.remove('hidden');
+        modalDetail.classList.add('hidden');
+        modalEdit.classList.add('hidden');
+
+        if (type === 'detail') {
+            modalDetail.classList.remove('hidden');
+            document.getElementById('detailId').innerText = ticket.id;
+            document.getElementById('detailJudul').innerText = ticket.judul;
+            document.getElementById('detailStatus').innerText = ticket.status;
+        } else if (type === 'edit') {
+            modalEdit.classList.remove('hidden');
+            document.getElementById('editForm').action = `/developer/kelola-tiket/${ticket.id}`;
+            document.getElementById('editJudul').value = ticket.judul;
+            document.getElementById('editStatus').value = ticket.status;
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('ticketModal').classList.add('hidden');
+    }
+</script>
 @endsection

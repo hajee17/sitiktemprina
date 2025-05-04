@@ -27,28 +27,28 @@
 
         <!-- Knowledge Cards -->
         <div class="grid grid-cols-2 gap-4">
-            @foreach($knowledgeBases as $kb)
-            <div class="bg-white p-4 rounded-xl shadow-sm flex gap-3 items-start justify-between">
-                <div class="flex gap-3">
-                    <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                        <!-- Placeholder Icon -->
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-sm text-[#1F1F1F]">{{ $kb->judul }}</p>
-                        <p class="text-xs text-gray-600 mt-1">{{ $kb->kategori }} · {{ $kb->kode_tiket }}</p>
-                        <p class="text-xs text-gray-500">{{ $kb->author }} · {{ \Carbon\Carbon::parse($kb->tanggal)->format('d M Y') }}</p>
-                    </div>
-                </div>
-                <button class="text-gray-500 hover:text-gray-800">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h.01M12 12h.01M18 12h.01" />
+                    @foreach($knowledgeBases as $kb)
+        <div class="bg-white p-4 rounded-xl shadow-sm flex gap-3 items-start justify-between">
+            <div class="flex gap-3">
+                <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                </button>
+                </div>
+                <div>
+                    <p class="font-semibold text-sm text-[#1F1F1F]">{{ $kb->judul }}</p>
+                    <p class="text-xs text-gray-600 mt-1">{{ $kb->kategori }} · {{ $kb->kode_tiket }}</p>
+                    <p class="text-xs text-gray-500">{{ $kb->author }} · {{ $kb->tanggal->format('d M Y') }}</p>
+                    <p class="text-xs mt-1 text-gray-700 line-clamp-2">{{ $kb->desc }}</p>
+                </div>
             </div>
-            @endforeach
+            <button class="text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                </svg>
+            </button>
+        </div>
+        @endforeach
         </div>
     </div>
 </div>

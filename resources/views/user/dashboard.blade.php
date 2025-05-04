@@ -10,7 +10,7 @@
          style="background-image: url('{{ asset('images/frame21.png') }}');">
         <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Selamat Datang di SITIK!</h2>
         <p class="text-lg text-gray-700 mb-6">Ada yang perlu kami bantu? Buat tiket baru sekarang.</p>
-        <a href="#" class="inline-block bg-black text-white font-bold py-3 px-6 rounded-full">
+        <a href="{{ url('tickets/create') }}" class="inline-block bg-black text-white font-bold py-3 px-6 rounded-full">
             Buat Tiket Baru
         </a>
     </div>
@@ -31,17 +31,17 @@
 <div class="container mx-auto flex flex-wrap justify-center gap-6">
     <div class="bg-white p-6 shadow-lg rounded-lg w-64 text-center">
         <img src="{{ asset('images/icon1.png') }}" alt="Total Tiket" class="mx-auto mb-3">
-        <p class="text-2xl font-bold">999.999.999</p>
+        <p class="text-2xl font-bold">{{ number_format($totalTiket) }}</p>
         <p class="text-gray-600">Total Tiket Dibuat</p>
     </div>
     <div class="bg-white p-6 shadow-lg rounded-lg w-64 text-center">
         <img src="{{ asset('images/icon2.png') }}" alt="Tiket Diproses" class="mx-auto mb-3">
-        <p class="text-2xl font-bold">999.999.999</p>
+        <p class="text-2xl font-bold">{{ number_format($tiketDiproses) }}</p>
         <p class="text-gray-600">Tiket Diproses</p>
     </div>
     <div class="bg-white p-6 shadow-lg rounded-lg w-64 text-center">
         <img src="{{ asset('images/icon3.png') }}" alt="Tiket Selesai" class="mx-auto mb-3">
-        <p class="text-2xl font-bold">999.999.999</p>
+        <p class="text-2xl font-bold">{{ number_format($tiketSelesai) }}</p>
         <p class="text-gray-600">Tiket Selesai</p>
     </div>
 </div>

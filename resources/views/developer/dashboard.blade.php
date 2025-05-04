@@ -1,145 +1,198 @@
-@extends('layouts.master')
+@extends('layouts.developer')
 
 @section('content')
-<div class="bg-[#F5F6FA] min-h-screen px-8 py-6">
+<div class="p-6 space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">Dashboard Developer</h1>
 
-    {{-- Header --}}
-    <div class="bg-white flex justify-end items-center px-10 py-3 rounded-md shadow mb-6">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-black rounded-full"></div>
-            <div>
-                <p class="font-bold text-sm text-gray-800">Hafidz Irham</p>
-                <p class="text-xs text-gray-500">Developer</p>
-            </div>
+    <!-- Statistic Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        @foreach([
+            ['title' => 'Prioritas Tinggi (Baru)', 'value' => $highPriorityNew, 'color' => 'bg-red-50 text-red-800'],
+            ['title' => 'Tiket Baru', 'value' => $newTickets, 'color' => 'bg-blue-50 text-blue-800'],
+            ['title' => 'Tiket Diproses', 'value' => $processedTickets, 'color' => 'bg-yellow-50 text-yellow-800'],
+            ['title' => 'Tiket Selesai', 'value' => $completedTickets, 'color' => 'bg-green-50 text-green-800'],
+            ['title' => 'Total Tiket', 'value' => $totalTickets, 'color' => 'bg-gray-50 text-gray-800']
+        ] as $card)
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-sm font-medium text-gray-500">{{ $card['title'] }}</div>
+            <div class="text-2xl font-bold mt-1 {{ $card['color'] }}">{{ number_format($card['value']) }}</div>
         </div>
-    </div>
-
-    {{-- Card Statistik --}}
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        @php
-            $stats = [
-                ['label' => 'Prioritas Tinggi (Baru)', 'icon' => '🛑', 'value' => '999.999.999'],
-                ['label' => 'Tiket Baru', 'icon' => '📩', 'value' => '999.999.999'],
-                ['label' => 'Tiket Diproses', 'icon' => '⏳', 'value' => '999.999.999'],
-                ['label' => 'Tiket Selesai', 'icon' => '🏁', 'value' => '999.999.999'],
-                ['label' => 'Total Tiket', 'icon' => '📊', 'value' => '999.999.999'],
-            ];
-        @endphp
-
-        @foreach ($stats as $stat)
-            <div class="bg-white border border-gray-300 rounded-xl p-4 flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-3">
-                    <p class="text-sm font-medium text-gray-600 leading-tight">{{ $stat['label'] }}</p>
-                    <span class="text-xl">{{ $stat['icon'] }}</span>
-                </div>
-                <p class="text-2xl font-bold text-black">{{ $stat['value'] }}</p>
-            </div>
         @endforeach
     </div>
 
-    {{-- Grafik Tiket --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-white rounded-lg p-6 shadow col-span-2">
-            <h4 class="text-md font-semibold text-gray-700 mb-3">Grafik Tiket Masuk</h4>
-            <canvas id="barChart"></canvas>
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Weekly Ticket Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Grafik Tiket Mingguan</h2>
+            <div class="h-64">
+                <canvas id="weeklyTicketChart"></canvas>
+            </div>
         </div>
-        <div class="bg-white rounded-lg p-6 shadow">
-            <h4 class="text-md font-semibold text-gray-700 mb-3">Statistik Tiket</h4>
-            <canvas id="donutChart"></canvas>
-            <div class="mt-4 space-y-1 text-sm text-gray-600">
-                <div><span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>Prioritas Tinggi</div>
-                <div><span class="inline-block w-3 h-3 bg-blue-500 rounded-full mr-2"></span>Baru</div>
-                <div><span class="inline-block w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>Diproses</div>
-                <div><span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>Selesai</div>
+
+        <!-- Status Distribution Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Status Tiket</h2>
+            <div class="h-64">
+                <canvas id="statusDistributionChart"></canvas>
+            </div>
+            <div class="mt-2 text-center text-sm text-gray-500">
+                {{ $newTickets > 0 ? round(($highPriorityNew/$newTickets)*100, 0) : 0 }}% Prioritas Tinggi
             </div>
         </div>
     </div>
 
-    {{-- Tabel Tiket --}}
-    <div class="bg-white rounded-xl p-6 shadow">
-        <h4 class="text-md font-semibold text-gray-700 mb-4">Tiket Masuk (Terbaru)</h4>
-        <div class="overflow-auto">
-            <table class="min-w-full text-sm text-left text-gray-600">
-                <thead class="bg-gray-100 text-xs text-gray-700 uppercase">
+    <!-- Recent Tickets Table -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-800">Tiket Masuk (Terbaru)</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-2">ID Tiket</th>
-                        <th class="px-4 py-2">Prioritas</th>
-                        <th class="px-4 py-2">Judul</th>
-                        <th class="px-4 py-2">Kategori</th>
-                        <th class="px-4 py-2">Nama Pelapor</th>
-                        <th class="px-4 py-2">Tanggal Dibuat</th>
-                        <th class="px-4 py-2">Status</th>
-                        <th class="px-4 py-2">Aksi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Tiket</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioritas</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
-                    @foreach($tickets as $ticket)
-                        <tr>
-                            <td class="px-4 py-2">{{ $ticket->id_tiket }}</td>
-                            <td class="px-4 py-2">
-                                <span class="px-2 py-1 rounded-full text-white text-xs font-medium
-                                    {{ $ticket->prioritas == 'Tinggi' ? 'bg-red-500' : ($ticket->prioritas == 'Sedang' ? 'bg-yellow-500' : 'bg-green-500') }}">
-                                    {{ $ticket->prioritas }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">{{ $ticket->judul }}</td>
-                            <td class="px-4 py-2">{{ $ticket->kategori }}</td>
-                            <td class="px-4 py-2">{{ $ticket->nama_pelapor }}</td>
-                            <td class="px-4 py-2">{{ $ticket->created_at->format('d M Y - H:i') }}</td>
-                            <td class="px-4 py-2">
-                                <span class="px-2 py-1 rounded-full text-xs font-medium
-                                    {{ $ticket->status == 'Baru' ? 'bg-blue-200 text-blue-800' :
-                                        ($ticket->status == 'Diproses' ? 'bg-yellow-200 text-yellow-800' :
-                                        ($ticket->status == 'Selesai' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-700')) }}">
-                                    {{ $ticket->status }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2">
-                                <a href="{{ route('tickets.show', $ticket->id) }}" class="text-blue-600 hover:underline text-sm">Lihat Detail</a>
-                            </td>
-                        </tr>
-                    @endforeach
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($latestTickets as $ticket)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $ticket->ID_Ticket }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span @class([
+                                'px-2 py-1 text-xs font-semibold rounded-full',
+                                'bg-red-100 text-red-800' => $ticket->Priority === 'Tinggi',
+                                'bg-yellow-100 text-yellow-800' => $ticket->Priority === 'Sedang',
+                                'bg-green-100 text-green-800' => $ticket->Priority === 'Rendah'
+                            ])>
+                                {{ $ticket->Priority }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->Title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ $ticket->created_at_formatted }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $status = optional($ticket->latestStatus)->Status ?? 'Unknown';
+                                $statusColors = [
+                                    'Baru' => 'bg-blue-100 text-blue-800',
+                                    'Diproses' => 'bg-yellow-100 text-yellow-800',
+                                    'Selesai' => 'bg-green-100 text-green-800',
+                                    'Pending' => 'bg-orange-100 text-orange-800'
+                                ];
+                            @endphp
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ $status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{{ route('developer.tickets.show', $ticket->ID_Ticket) }}" class="text-indigo-600 hover:text-indigo-900">Lihat Detail</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada tiket terbaru</td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-{{-- Chart JS --}}
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const barChart = new Chart(document.getElementById('barChart'), {
+    // Weekly Ticket Chart
+    const weeklyCtx = document.getElementById('weeklyTicketChart').getContext('2d');
+    new Chart(weeklyCtx, {
         type: 'bar',
         data: {
-            labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+            labels: @json($weekDays),
             datasets: [{
-                label: 'Jumlah Tiket',
-                data: [15, 19, 11, 7, 17, 9, 5],
-                backgroundColor: '#1F1F1F',
-                borderRadius: 5
+                label: 'Tiket Masuk',
+                data: @json($weeklyData),
+                backgroundColor: 'rgba(79, 70, 229, 0.7)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 1,
+                borderRadius: 6,
+                barThickness: 30
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y} tiket`;
+                        }
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
             }
         }
     });
 
-    const donutChart = new Chart(document.getElementById('donutChart'), {
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusDistributionChart').getContext('2d');
+    new Chart(statusCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Prioritas Tinggi', 'Baru', 'Diproses', 'Selesai'],
+            labels: @json(array_keys($statusDistribution)),
             datasets: [{
-                label: 'Statistik',
-                data: [10, 10, 5, 6],
-                backgroundColor: ['#EF4444', '#3B82F6', '#F59E0B', '#10B981']
+                data: @json(array_values($statusDistribution)),
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.7)',
+                    'rgba(234, 179, 8, 0.7)',
+                    'rgba(16, 185, 129, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(234, 179, 8, 1)',
+                    'rgba(16, 185, 129, 1)'
+                ],
+                borderWidth: 1,
+                hoverOffset: 8
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const value = context.parsed;
+                            const percentage = Math.round((value / total) * 100);
+                            return `${context.label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
             cutout: '70%'
         }
     });

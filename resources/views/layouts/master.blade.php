@@ -79,6 +79,7 @@
     
                 @auth
                     <li><a href="{{ route('tickets.index') }}" class="hover:text-gray-300">Tiket Saya</a></li>
+                    <li><a href="{{ url('/knowledgebase') }}" class="hover:text-gray-300">Knowledge Base</a></li>
                     <li><a href="{{ url('/myaccount') }}" class="hover:text-gray-300">Akun Saya</a></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
