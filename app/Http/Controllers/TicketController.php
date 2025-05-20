@@ -178,7 +178,7 @@ class TicketController extends Controller
     $tiketDiproses = Status::where('Status', 'Diproses')->count();
     $tiketSelesai = Status::where('Status', 'Selesai')->count();
 
-    return view('dashboard', compact('totalTiket', 'tiketDiproses', 'tiketSelesai'));
+    return view('user.dashboard', compact('totalTiket', 'tiketDiproses', 'tiketSelesai'));
 }
 
 public function take($id)

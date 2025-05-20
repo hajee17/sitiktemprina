@@ -217,7 +217,7 @@ class DeveloperController extends Controller
     // 4. Tampilkan form tambah akun
     public function create()
     {
-        return view('admin.kelola-akun.create');
+        return view('developer.kelola-akun.create');
     }
 
     // 5. Simpan akun baru
@@ -244,4 +244,5 @@ class DeveloperController extends Controller
         return redirect()->route('developer.index')->with('success', 'Akun berhasil ditambahkan');
     }
 
+    
 }
