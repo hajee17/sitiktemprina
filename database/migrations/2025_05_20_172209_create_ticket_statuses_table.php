@@ -9,19 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
-{
-    Schema::table('tickets', function (Blueprint $table) {
-        $table->string('priority')->default('Sedang'); // Tinggi, Sedang, Rendah
-    });
-}
+    public function up(): void
+    {
+        Schema::create('ticket_statuses', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+        });
+    }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::table('tickets', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('ticket_statuses');
     }
 };

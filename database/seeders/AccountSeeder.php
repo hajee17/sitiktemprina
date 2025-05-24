@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Account;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
 class AccountSeeder extends Seeder
 {
     /**
@@ -13,25 +13,11 @@ class AccountSeeder extends Seeder
      */
     public function run(): void
     {
-            \App\Models\Account::create([
-            'ID_Role' => \App\Models\Role::DEVELOPER,
-            'Name' => 'Developer',
-            'Email' => 'developer@example.com',
-            'Password' => Hash::make('password123'),
-            'Telp_Num' => '08123456789'
-        ]);
-        
-           \App\Models\Account::create([
-            'ID_Role' => \App\Models\Role::USER,
-            'Name' => 'Regular User',
-            'Email' => 'user@example.com',
-            'Password' => Hash::make('password123'),
-            'Telp_Num' => '08123456780'
-        ]);
+        $roles = DB::table('roles')->pluck('id', 'name');
 
-        // Anda bisa menambahkan lebih banyak data di sini
-        // ...
-
-        $this->command->info('Account seeding completed!');
+        DB::table('accounts')->insert([
+            ['username' => 'dev_achmad', 'email' => 'dev@example.com', 'password' => Hash::make('password123'), 'role_id' => $roles['developer'], 'profile' => json_encode(['nama' => 'Achmad']), 'created_at' => now(), 'updated_at' => now()],
+            ['username' => 'user_achmad', 'email' => 'user@example.com', 'password' => Hash::make('userpass'), 'role_id' => $roles['user'], 'profile' => json_encode(['nama' => 'Rama']), 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 }
