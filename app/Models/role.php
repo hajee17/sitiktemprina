@@ -1,17 +1,20 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Role extends Model
 {
-    protected $table = 'roles';
-    protected $primaryKey = 'ID_Role';
-    public $timestamps = false;
+    protected $fillable = ['name', 'permissions'];
 
-    protected $fillable = ['Role'];
+    protected $casts = [
+        'permissions' => 'array',
+    ];
 
-    const DEVELOPER = 1;
-    const USER = 2;
+    public function accounts()
+    {
+        return $this->hasMany(Account::class);
+    }
 }

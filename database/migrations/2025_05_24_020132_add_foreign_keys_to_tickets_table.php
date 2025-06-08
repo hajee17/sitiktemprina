@@ -38,6 +38,15 @@ return new class extends Migration
                 ON DELETE RESTRICT
                 DEFERRABLE INITIALLY IMMEDIATE
             ');
+
+            DB::statement('
+                ALTER TABLE tickets 
+                ADD CONSTRAINT tickets_priority_id_foreign 
+                FOREIGN KEY (priority_id) 
+                REFERENCES ticket_priorities(id) 
+                ON DELETE RESTRICT
+                DEFERRABLE INITIALLY IMMEDIATE
+            ');
         });
     }
     

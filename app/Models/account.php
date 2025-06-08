@@ -1,90 +1,38 @@
 <?php
 
 namespace App\Models;
-
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 
 class Account extends Authenticatable
 {
-    use HasFactory, Notifiable;
-
-    protected $table = 'account';
-    protected $primaryKey = 'ID_Account';
-    public $timestamps = false;
-    public $incrementing = true;
-
     protected $fillable = [
-        'ID_Role',
-        'Name',
-        'Email',
-        'Password',
-        'Telp_Num',
-        'last_login',
+        'username', 'email', 'password', 'role_id', 'name', 'phone', 'address'
     ];
 
-    protected $hidden = [
-        'Password',
-        'remember_token',
-    ];
+    protected $hidden = ['password'];
 
-    protected $casts = [
-        'last_login' => 'datetime',
-    ];
-
-    public const ROLE_DEVELOPER = 1;
-    public const ROLE_USER = 2;
-
-    // Override kolom email default Laravel
-
-    public function username()
+    public function role(): BelongsTo
     {
-    return 'Email'; 
-    }
-    public function getAuthIdentifierName()
-    {
-        return 'Email';
+        return $this->belongsTo(Role::class);
     }
 
-    public function getAuthPassword()
+    public function tickets(): HasMany
     {
-        return $this->Password;
+        return $this->hasMany(Ticket::class);
     }
 
-    public function getRememberToken()
+    public function comments(): HasMany
     {
-        return $this->remember_token;
+        return $this->hasMany(TicketComment::class);
     }
 
-    public function setRememberToken($value)
+    public function knowledgeBases(): HasMany
     {
-        $this->remember_token = $value;
-    }
-
-    public function getRememberTokenName()
-    {
-        return 'remember_token';
-    }
-
-    public function role()
-    {
-        return $this->belongsTo(Role::class, 'ID_Role', 'ID_Role');
-    }
-
-    public function isDeveloper()
-    {
-        return $this->ID_Role == self::ROLE_DEVELOPER;
-    }
-
-    public function isUser()
-    {
-        return $this->ID_Role == self::ROLE_USER;
-    }
-
-    public function updateLastLogin()
-    {
-        $this->last_login = now();
-        $this->save();
+        return $this->hasMany(KnowledgeBase::class);
     }
 }

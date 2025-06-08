@@ -23,7 +23,12 @@ class DatabaseSeeder extends Seeder
             AccountSeeder::class,
             TicketStatusSeeder::class,
             TicketCategorySeeder::class,
+            TicketPrioritiesSeeder::class,
             KnowledgeTagSeeder::class,
-        ]);
+            TicketSeeder::class,
+            TicketCommentSeeder::class,
+            KnowledgeBaseSeeder::class,
+            
+       ]);
     }
 }

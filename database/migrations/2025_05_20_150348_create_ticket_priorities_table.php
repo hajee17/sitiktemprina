@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ticket_statuses', function (Blueprint $table) {
+        Schema::create('ticket_priorities', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // contoh: 'open', 'in_progress', 'closed'
+            $table->string('name'); // tinggi, sedang, rendah
+            $table->unsignedTinyInteger('level'); // e.g. 1 = tinggi, 2 = sedang, 3 = rendah
             $table->timestamps();
-        });
-        DB::transaction(function () {
-            DB::statement('ALTER TABLE ticket_statuses ADD CONSTRAINT ticket_statuses_name_unique UNIQUE (name)');
         });
     }
 
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ticket_statuses');
+        Schema::dropIfExists('ticket_priorities');
     }
 };

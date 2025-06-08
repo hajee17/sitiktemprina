@@ -16,24 +16,18 @@ return new class extends Migration
             $table->string('username');
             $table->string('email');
             $table->string('password');
-            $table->foreignId('role_id')->nullable();
-            $table->jsonb('profile')->nullable();
+            $table->foreignId('role_id');
+            $table->string('name')->nullable();
+            $table->string('phone')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
 
-        Schema::table('accounts', function (Blueprint $table) {
-            // Unique constraint untuk username
-            $table->unique('username', 'accounts_username_unique');
+        DB::transaction(function () {
+            // Add unique constraints
+            DB::statement('ALTER TABLE accounts ADD CONSTRAINT accounts_username_unique UNIQUE (username)');
+            DB::statement('ALTER TABLE accounts ADD CONSTRAINT accounts_email_unique UNIQUE (email)');
             
-            // Unique constraint untuk email
-            $table->unique('email', 'accounts_email_unique');
-            
-            // Foreign key constraint (jika belum berhasil di atas)
-            $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->onDelete('cascade')
-                  ->name('accounts_role_id_foreign');
         });
     }
 

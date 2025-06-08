@@ -18,31 +18,10 @@ return new class extends Migration
             $table->unsignedBigInteger('account_id');
             $table->unsignedBigInteger('status_id');
             $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('priority_id');
+            $table->unsignedBigInteger('sbu_id');
+            $table->unsignedBigInteger('departement_id');
             $table->timestamps();
-        });
-
-        // 2. Tambahkan constraint foreign key secara terpisah
-        Schema::table('tickets', function (Blueprint $table) {
-            // Foreign key untuk account
-            $table->foreign('account_id')
-                  ->references('id')
-                  ->on('accounts')
-                  ->onDelete('cascade')
-                  ->name('tickets_account_id_foreign');
-
-            // Foreign key untuk status
-            $table->foreign('status_id')
-                  ->references('id')
-                  ->on('ticket_statuses')
-                  ->onDelete('restrict')
-                  ->name('tickets_status_id_foreign');
-
-            // Foreign key untuk category
-            $table->foreign('category_id')
-                  ->references('id')
-                  ->on('ticket_categories')
-                  ->onDelete('restrict')
-                  ->name('tickets_category_id_foreign');
         });
 
     }

@@ -13,8 +13,13 @@ return new class extends Migration
     {
         Schema::create('ticket_categories', function (Blueprint $table) {
             $table->id();
+            $table->string('name'); 
             $table->timestamps();
         });
+        DB::transaction(function () {
+            DB::statement('ALTER TABLE ticket_categories ADD CONSTRAINT ticket_categories_name_unique UNIQUE (name)');
+        });
+    
     }
 
     /**
