@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->foreignId('account_id');
-            $table->jsonb('tags')->nullable(); // array ID dari knowledge_tags
             $table->timestamps();
         });
         

@@ -9,20 +9,24 @@ class KnowledgeBase extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'content', 'account_id', 'tags'];
+    // Hapus 'tags' dari $fillable
+    protected $fillable = ['title', 'content', 'account_id'];
 
-    /**
-     * Otomatis cast kolom 'tags' dari JSON di DB menjadi array di PHP.
-     */
-    protected $casts = [
-        'tags' => 'array',
-    ];
+    // Hapus $casts untuk 'tags'
+    // protected $casts = [
+    //     'tags' => 'array',
+    // ];
 
-    /**
-     * Mendapatkan akun yang menulis artikel ini.
-     */
     public function author()
     {
         return $this->belongsTo(Account::class, 'account_id');
+    }
+
+    /**
+     * Relasi Many-to-Many ke KnowledgeTag.
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(KnowledgeTag::class, 'knowledge_base_knowledge_tag');
     }
 }

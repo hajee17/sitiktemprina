@@ -1,248 +1,192 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\DB;
-use App\Models\Ticket;
-use App\Models\Status;
-use Illuminate\Support\Facades\Auth;
+
 use App\Models\Account;
+use App\Models\Role;
+use App\Models\Ticket;
+use App\Models\TicketStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class DeveloperController extends Controller
 {
+
     public function __construct()
-{
-    $this->middleware('auth');
-    $this->middleware('role:1');
-    
-    // Debug sementara
-    if (Auth::check()) {
-        dd(Auth::user()->ID_Role); // Harus mengembalikan 1
+    {
+        $this->middleware('auth');
     }
-}
 
     public function dashboard()
     {
-        // Ticket counts with optimized queries
-        $counts = $this->getTicketCounts();
-        
-        // Weekly ticket data
-        $weeklyData = $this->getWeeklyTicketData();
-        
-        // Latest tickets with eager loading
-        $latestTickets = Ticket::with(['status' => function($query) {
-            $query->latest('Update_Time');
-        }])
-        ->latest()
-        ->take(5)
-        ->get();
+        // Ambil ID dari status yang relevan sekali
+        $statusOpenId = TicketStatus::where('name', 'Open')->value('id');
+        $statusInProgressId = TicketStatus::where('name', 'In Progress')->value('id');
+        $statusClosedId = TicketStatus::where('name', 'Closed')->value('id');
+        $priorityHighId = \App\Models\TicketPriority::where('name', 'Tinggi')->value('id');
 
-        return view('developer.dashboard', array_merge($counts, $weeklyData, [
-            'latestTickets' => $latestTickets
-        ]));
-    }
+        $totalTickets = Ticket::count();
+        $newTickets = Ticket::where('status_id', $statusOpenId)->count();
 
-    protected function getTicketCounts()
-    {
-        return [
-            'highPriorityNew' => Ticket::where('priority', 'Tinggi') // pastikan ini sesuai nama kolom sebenarnya
-            ->whereHas('status', fn($q) => $q->where('Status', 'Baru'))
-            ->count(),
-                
-            'newTickets' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Baru'))
-                ->count(),
-                
-            'processedTickets' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Diproses'))
-                ->count(),
-                
-            'completedTickets' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Selesai'))
-                ->count(),
-                
-            'totalTickets' => Ticket::count(),
-                
-            'statusDistribution' => [
-                'Baru' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Baru'))->count(),
-                'Diproses' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Diproses'))->count(),
-                'Selesai' => Ticket::whereHas('status', fn($q) => $q->where('Status', 'Selesai'))->count(),
-            ]
+        $counts = [
+            'highPriorityNew' => Ticket::where('priority_id', $priorityHighId)->where('status_id', $statusOpenId)->count(),
+            'newTickets' => $newTickets,
+            'processedTickets' => Ticket::where('status_id', $statusInProgressId)->count(),
+            'completedTickets' => Ticket::where('status_id', $statusClosedId)->count(),
+            'totalTickets' => $totalTickets,
+            'myAssignedTickets' => Ticket::where('assignee_id', auth()->id())->where('status_id', $statusInProgressId)->count(),
         ];
-    }
+        
+        $weeklyData = $this->getWeeklyTicketData();
 
+        $latestTickets = Ticket::with('author', 'status')->latest()->take(5)->get();
+
+        return view('developer.dashboard', array_merge($counts, $weeklyData, ['latestTickets' => $latestTickets]));
+    }
+    
     protected function getWeeklyTicketData()
     {
-        $weekStart = Carbon::now()->startOfWeek();
+        $weekStartDate = Carbon::now()->startOfWeek();
+        $weekEndDate = Carbon::now()->endOfWeek();
+        
+        $ticketsByDay = Ticket::query()
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->whereBetween('created_at', [$weekStartDate, $weekEndDate])
+            ->groupBy('date')
+            ->pluck('count', 'date');
+
         $weekDays = [];
         $weeklyData = [];
-        
+
         for ($i = 0; $i < 7; $i++) {
-            $day = $weekStart->copy()->addDays($i);
-            $weekDays[] = $day->isoFormat('ddd'); // Short day name (Sen, Sel, Rab, etc.)
-            $weeklyData[] = Ticket::whereDate('created_at', $day)->count();
+            $day = $weekStartDate->copy()->addDays($i);
+            $weekDays[] = $day->isoFormat('ddd');
+            $weeklyData[] = $ticketsByDay->get($day->toDateString(), 0);
         }
-
-        return [
-            'weekDays' => $weekDays,
-            'weeklyData' => $weeklyData
-        ];
-    }
-    public function ambilTicket()
-    {
-        // Get unassigned tickets (status 'Baru')
-        $tickets = Ticket::whereHas('status', function($query) {
-                $query->where('Status', 'Baru');
-            })
-            ->with(['reporterUser']) // Assuming you have this relationship
-            ->latest()
-            ->get();
-
-        return view('developer.ambil-ticket', compact('tickets'));
+        
+        return ['weekDays' => $weekDays, 'weeklyData' => $weeklyData];
     }
 
+    /**
+     * Menampilkan semua tiket yang belum ditugaskan (status 'Open').
+     */
     public function allTickets()
-{
-    $tickets = Ticket::with(['status' => function($query) {
-        $query->latest('Update_Time');
-    }, 'account'])->latest()->get();
-
-    return view('developer.ambil-ticket', compact('tickets'));
-}
-
-    public function myticket()
     {
-        // Ambil tiket yang sedang ditangani oleh developer yang login
-        $tickets = Ticket::with(['status', 'account', 'documentations'])
-            ->whereHas('status', function($query) {
-                $query->where('ID_Account', auth()->user()->ID_Account)
-                    ->where('Status', 'Diproses');
-            })
+        $statusOpenId = TicketStatus::where('name', 'Open')->value('id');
+        $tickets = Ticket::with('author', 'status', 'priority')
+            ->where('status_id', $statusOpenId)
             ->latest()
-            ->get();
+            ->paginate(15);
 
-        return view('developer.myticket', compact('tickets'));
+        return view('developer.all-tickets', compact('tickets'));
     }
 
-    public function updateStatus(Request $request, $id)
+    /**
+     * Menampilkan tiket yang sedang ditangani oleh developer yang login.
+     */
+    public function myTickets()
     {
-        $request->validate([
-            'status' => 'required|in:Diproses,Selesai,Ditunda'
+        $tickets = Ticket::with('author', 'status', 'priority')
+            ->where('assignee_id', auth()->id()) // Query berdasarkan kolom assignee_id
+            ->whereHas('status', fn($q) => $q->where('name', '!=', 'Closed')) // Tampilkan yang belum selesai
+            ->latest()
+            ->paginate(15);
+            
+        return view('developer.my-tickets', compact('tickets'));
+    }
+
+    /**
+     * Aksi untuk mengambil (assign) sebuah tiket.
+     */
+    public function assignTicket(Ticket $ticket)
+    {
+        $statusInProgress = TicketStatus::where('name', 'In Progress')->first();
+
+        // Assign tiket ke diri sendiri dan ubah statusnya
+        $ticket->update([
+            'assignee_id' => auth()->id(),
+            'status_id' => $statusInProgress->id,
         ]);
 
-        $ticket = Ticket::findOrFail($id);
+        return redirect()->route('developer.myTickets')->with('success', 'Tiket berhasil diambil.');
+    }
+    
+    /**
+     * Aksi untuk menandai tiket sebagai selesai.
+     */
+    public function completeTicket(Ticket $ticket)
+    {
+        if ($ticket->assignee_id !== auth()->id()) {
+            return back()->with('error', 'Anda tidak berhak mengubah status tiket ini.');
+        }
 
-        // Update status
-        $ticket->status()->updateOrCreate(
-            ['ID_Ticket' => $ticket->ID_Ticket],
-            [
-                'Status' => $request->status,
-                'Update_Time' => now(),
-                'Desc' => 'Status diupdate oleh developer',
-                'ID_Account' => auth()->id()
-            ]
-        );
+        $statusClosed = TicketStatus::where('name', 'Closed')->first();
 
-        return back()->with('success', 'Status tiket berhasil diperbarui');
+        $ticket->update([
+            'status_id' => $statusClosed->id,
+        ]);
+
+        return redirect()->route('developer.myTickets')->with('success', 'Tiket telah ditandai sebagai selesai.');
     }
 
 
+    // --- KELOLA AKUN ---
 
-    // Then visit this URL to see your actual column names
-    // Based on the result, update your kelolaAkun method manually:
-
-    // 1. Tampilkan semua akun
-    public function index()
+    public function kelolaAkun()
     {
-        $accounts = Account::orderBy('ID_Account', 'asc')->paginate(10);
+        $accounts = Account::with('role')->latest()->paginate(10);
+        $roles = Role::all();
         
-        // Tambahkan perhitungan jumlah akun per role
-        $userCounts = [
-            'Developer' => Account::where('ID_Role', Account::ROLE_DEVELOPER)->count(),
-            'User' => Account::where('ID_Role', Account::ROLE_USER)->count()
-        ];
-        
-        return view('developer.kelola-akun', compact('accounts', 'userCounts'));
+        return view('developer.kelola-akun', compact('accounts', 'roles'));
     }
-
-    // 2. Update akun (nama, email, role)
-    public function update(Request $request, $id)
+    
+    public function updateAkun(Request $request, Account $account)
     {
-        $account = Account::findOrFail($id);
-
-        $validator = Validator::make($request->all(), [
-            'Name' => 'required|string|max:100',
-            'Email' => 'required|email|unique:account,Email,'.$account->ID_Account.',ID_Account',
-            'Telp_Num' => 'nullable|string|max:20',
-            'ID_Role' => 'required|in:1,2',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('accounts')->ignore($account->id)],
+            'phone' => 'nullable|string|max:20',
+            'role_id' => 'required|exists:roles,id',
         ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
+    
+        $account->update($validated);
+    
+        return back()->with('success', 'Akun berhasil diperbarui.');
+    }
+    
+    public function destroyAkun(Account $account)
+    {
+        // Pencegahan agar tidak bisa menghapus diri sendiri
+        if ($account->id === auth()->id()) {
+            return back()->with('error', 'Anda tidak bisa menghapus akun Anda sendiri.');
         }
 
-        try {
-            $account->update([
-                'Name' => $request->Name,
-                'Email' => $request->Email,
-                'Telp_Num' => $request->Telp_Num,
-                'ID_Role' => $request->ID_Role,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Perubahan berhasil disimpan'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: '.$e->getMessage()
-            ], 500);
-        }
+        $account->delete();
+        return back()->with('success', 'Akun berhasil dihapus.');
     }
 
-    // 3. Hapus akun
-    public function destroy($id)
+    public function storeAkun(Request $request)
     {
-            $account = Account::findOrFail($id);
-            $account->delete();
-
-            return response()->json(['message' => 'Akun berhasil dihapus']);
-    }
-
-    // 4. Tampilkan form tambah akun
-    public function create()
-    {
-        return view('developer.kelola-akun.create');
-    }
-
-    // 5. Simpan akun baru
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email|unique:account,email',
-            'password' => 'required|min:8|confirmed',
-            'role_id'  => 'required|in:1,2',
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:accounts,email',
+            'username' => 'required|string|unique:accounts,username',
+            'password' => 'required|string|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
         ]);
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
 
         Account::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => bcrypt($request->password),
-            'role_id'  => $request->role_id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'username' => $validated['username'],
+            'password' => Hash::make($validated['password']),
+            'role_id' => $validated['role_id'],
         ]);
 
-        return redirect()->route('developer.index')->with('success', 'Akun berhasil ditambahkan');
+        return redirect()->route('developer.kelolaAkun')->with('success', 'Akun baru berhasil ditambahkan.');
     }
-
-    
 }

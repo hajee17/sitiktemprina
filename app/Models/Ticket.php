@@ -64,4 +64,9 @@ class Ticket extends Model
     {
         return $this->hasMany(TicketAttachment::class);
     }
+    
+    public function assignee()
+    {
+        return $this->belongsTo(Account::class, 'assignee_id');
+    }
 }

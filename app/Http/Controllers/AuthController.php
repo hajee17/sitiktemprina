@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Account;
+use App\Models\Role;
 
 class AuthController extends Controller
 {
@@ -22,17 +22,10 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        $loginData = [
-            'Email' => $credentials['email'],
-            'password' => $credentials['password'],
-        ];
-
-        if (Auth::attempt($loginData)) {
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
             $user = Auth::user();
-            $user->updateLastLogin();
-
             if ($user->isDeveloper()) {
                 return redirect()->route('developer.dashboard');
             }
@@ -42,7 +35,7 @@ class AuthController extends Controller
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',
-        ]);
+        ])->withInput(); // Tambahkan withInput() untuk mengisi kembali form
     }
 
     public function logout(Request $request)
@@ -53,37 +46,37 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    public function registerForm()
+    public function showRegisterForm() 
     {
         return view('auth.register');
     }
 
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'Name' => 'required|string|max:255',
-            'Email' => 'required|email|unique:account,Email',
-            'Telp_Num' => 'required|string|max:20',
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:accounts,email',
+            'phone' => 'required|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'accepted',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                             ->withErrors($validator)
-                             ->withInput();
+        $userRole = Role::where('name', 'user')->first();
+        if (!$userRole) {
+            return back()->withErrors(['msg' => 'Konfigurasi role sistem bermasalah.'])->withInput();
         }
 
         $user = Account::create([
-            'Name' => $request->Name,
-            'Email' => $request->Email,
-            'Telp_Num' => $request->Telp_Num,
-            'password' => Hash::make($request->Password),
-            'ID_Role' => $request->ID_Role ?? 2,
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'password' => Hash::make($validatedData['password']),
+            'role_id' => $userRole->id, 
         ]);
 
         Auth::login($user);
 
-        return redirect()->route('/')->with('success', 'Registrasi berhasil!');
+
+        return redirect()->route('user.dashboard')->with('success', 'Registrasi berhasil!');
     }
 }

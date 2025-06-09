@@ -56,6 +56,11 @@ class Account extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function isDeveloper(): bool
+    {
+        return $this->role && $this->role->name === 'developer';
+    }
+
     public function position()
     {
         return $this->belongsTo(Position::class);
