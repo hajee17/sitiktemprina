@@ -10,7 +10,7 @@ class KnowledgeBase extends Model
     use HasFactory;
 
     // Hapus 'tags' dari $fillable
-    protected $fillable = ['title', 'content', 'account_id'];
+    protected $fillable = ['title', 'content', 'account_id', 'type'];
 
     // Hapus $casts untuk 'tags'
     // protected $casts = [

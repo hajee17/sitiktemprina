@@ -6,27 +6,28 @@ use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\TicketStatus; 
 use App\Models\TicketCategory; 
-
+use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        // Ini sudah benar
-        $totalTiket = Ticket::count();
+{
+    $userId = Auth::id();
 
-        // Cara yang BENAR untuk menghitung tiket dengan status tertentu
-        // Kita query model Ticket, bukan TicketStatus
+    // 1. Statistik spesifik untuk user yang login
+    $totalTiket = Ticket::where('account_id', $userId)->count();
+    
+    $tiketDiproses = Ticket::where('account_id', $userId)
+        ->whereHas('status', fn($q) => $q->where('name', 'In Progress'))
+        ->count();
 
-        // Menghitung tiket yang memiliki relasi 'status' dimana nama statusnya adalah 'In Progress'
-        $tiketDiproses = Ticket::whereHas('status', function ($query) {
-            $query->where('name', 'In Progress');
-        })->count();
+    $tiketSelesai = Ticket::where('account_id', $userId)
+        ->whereHas('status', fn($q) => $q->where('name', 'Closed'))
+        ->count();
+    
+    // 2. Menyediakan data kategori dari database
+    $categories = TicketCategory::all();
 
-        // Menghitung tiket yang memiliki relasi 'status' dimana nama statusnya adalah 'Closed'
-        $tiketSelesai = Ticket::whereHas('status', function ($query) {
-            $query->where('name', 'Closed');
-        })->count();
-
-        return view('user.dashboard', compact('totalTiket', 'tiketDiproses', 'tiketSelesai'));
-    }
+    // Menggunakan nama file Anda: 'dashboard.blade.php' di folder user
+    return view('user.dashboard', compact('totalTiket', 'tiketDiproses', 'tiketSelesai', 'categories'));
+}
 }

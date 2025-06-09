@@ -10,7 +10,7 @@ use App\Models\TicketPriority;
 use App\Models\TicketStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
 class UserTicketController extends Controller
 {
     public function __construct()
@@ -23,67 +23,83 @@ class UserTicketController extends Controller
      */
     public function index()
     {
-        $tickets = Ticket::with('status', 'priority')
-            ->where('account_id', auth()->id()) // Query tiket berdasarkan ID pembuat
+        $tickets = Ticket::with(['status', 'priority', 'category'])
+            ->where('account_id', auth()->id())
             ->latest()
             ->paginate(10);
 
-        return view('user.tickets.index', compact('tickets'));
+        // Menggunakan nama file Anda: 'MyTicket.blade.php'
+        return view('user.MyTicket', compact('tickets'));
+    }
+
+    /**
+     * Membatalkan (menghapus) tiket milik pengguna.
+     */
+    public function destroy(Ticket $ticket)
+    {
+        if ($ticket->account_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($ticket->status->name !== 'Open') {
+            return back()->with('error', 'Tiket yang sudah diproses tidak dapat dibatalkan.');
+        }
+
+        foreach ($ticket->attachments as $attachment) {
+            Storage::disk('public')->delete($attachment->path);
+        }
+ 
+        $ticket->delete();
+
+        return redirect()->route('user.tickets.index')->with('success', 'Tiket #' . $ticket->id . ' telah berhasil dibatalkan.');
     }
 
     /**
      * Menampilkan form untuk membuat tiket baru.
      */
     public function create()
-    {
-        // Ambil data dari database untuk mengisi dropdown di form
-        $categories = TicketCategory::all();
-        $priorities = TicketPriority::orderBy('level')->get();
-        $sbus = Sbu::all();
-        $departments = Department::all();
+{
+    // Menyediakan data yang dibutuhkan untuk dropdown di form
+    $categories = TicketCategory::orderBy('name')->get();
+    $priorities = TicketPriority::orderBy('level')->get();
 
-        return view('user.tickets.create', compact('categories', 'priorities', 'sbus', 'departments'));
-    }
+    // Menggunakan nama file Anda: 'createTicket.blade.php'
+    return view('user.createTicket', compact('categories', 'priorities'));
+}
 
-    /**
-     * Menyimpan tiket baru ke database.
-     */
-    public function store(Request $request)
+public function store(Request $request)
     {
+        // Validasi disesuaikan dengan input form yang baru dan standar
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category_id' => 'required|exists:ticket_categories,id',
             'priority_id' => 'required|exists:ticket_priorities,id',
-            'sbu_id' => 'required|exists:sbus,id',
-            'department_id' => 'required|exists:departments,id',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:5120', // Maks 5MB
         ]);
 
         // Ambil status 'Open' sebagai status awal
-        $statusOpen = TicketStatus::where('name', 'Open')->first();
-        if (!$statusOpen) {
-            return back()->with('error', 'Konfigurasi status sistem tidak ditemukan.')->withInput();
-        }
+        $statusOpen = TicketStatus::where('name', 'Open')->firstOrFail();
+        $user = Auth::user();
 
-        // Buat tiket baru dengan foreign key yang benar
         $ticket = Ticket::create([
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'account_id' => auth()->id(),
-            'category_id' => $validated['category_id'],
-            'priority_id' => $validated['priority_id'],
-            'sbu_id' => $validated['sbu_id'],
-            'department_id' => $validated['department_id'],
-            'status_id' => $statusOpen->id,
+            'title'         => $validated['title'],
+            'description'   => $validated['description'],
+            'category_id'   => $validated['category_id'],
+            'priority_id'   => $validated['priority_id'],
+            'account_id'    => $user->id,
+            'status_id'     => $statusOpen->id,
+            'sbu_id'        => $user->sbu_id, // Diambil otomatis dari profil user
+            'department_id' => $user->department_id, // Diambil otomatis dari profil user
         ]);
 
-        // Jika ada file lampiran, simpan ke tabel ticket_attachments
+        // Proses lampiran jika ada
         if ($request->hasFile('attachment')) {
-            $path = $request->file('attachment')->store('ticket_attachments');
+            $path = $request->file('attachment')->store('ticket_attachments', 'public');
             $ticket->attachments()->create(['path' => $path]);
         }
 
+        // Arahkan ke halaman daftar tiket milik user
         return redirect()->route('user.tickets.index')->with('success', 'Tiket berhasil dibuat.');
     }
 

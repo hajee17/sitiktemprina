@@ -12,13 +12,33 @@ class KnowledgeBaseController extends Controller
     /**
      * Menampilkan daftar semua artikel knowledge base.
      */
-    public function index()
+public function index(Request $request)
     {
-        $knowledgeBases = KnowledgeBase::with(['author', 'tags'])->latest()->paginate(15);
+        // Query dasar dengan relasi yang dibutuhkan
+        $query = KnowledgeBase::with(['author', 'tags'])->latest();
 
-        return view('developer.knowledgebase.index', compact('knowledgeBases'));
+        // 1. Memenuhi kebutuhan pencarian
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where(fn($q) => 
+                $q->where('title', 'like', "%{$searchTerm}%")
+                ->orWhere('content', 'like', "%{$searchTerm}%")
+            );
+        }
+
+        // 2. Memenuhi kebutuhan filter tag
+        if ($request->filled('tag')) {
+            $tag = $request->input('tag');
+            $query->whereHas('tags', fn($q) => $q->where('name', $tag));
+        }
+
+        $knowledgeBases = $query->paginate(10);
+
+        // 3. Memenuhi kebutuhan daftar tag untuk tombol filter
+        $tags = KnowledgeTag::all();
+
+        return view('developer.knowledgebase', compact('knowledgeBases', 'tags'));
     }
-
     /**
      * Menampilkan detail satu artikel knowledge base.
      */
@@ -28,7 +48,43 @@ class KnowledgeBaseController extends Controller
 
         return view('developer.knowledgebase.show', compact('knowledgeBase'));
     }
+public function publicShow(KnowledgeBase $knowledgeBase)
+    {
+        // Memuat relasi author yang dibutuhkan oleh view
+        $knowledgeBase->load('author');
 
+        // Mengganti nama variabel agar cocok dengan view ($knowledge)
+        $knowledge = $knowledgeBase;
+
+        // Menggunakan nama file Anda: 'knowledgebase-detail.blade.php'
+        return view('user.knowledgebase-detail', compact('knowledge'));
+    }
+
+    public function publicIndex(Request $request)
+    {
+        // Query dasar dengan relasi yang dibutuhkan
+        $query = KnowledgeBase::with(['author', 'tags'])->latest();
+
+        // 1. Memenuhi kebutuhan pencarian
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('title', 'like', "%{$searchTerm}%");
+        }
+
+        // 2. Memenuhi kebutuhan filter tag
+        if ($request->filled('tag') && $request->input('tag') !== 'Semua') {
+            $tag = $request->input('tag');
+            $query->whereHas('tags', fn($q) => $q->where('name', $tag));
+        }
+
+        $knowledgeBases = $query->paginate(12);
+
+        // 3. Memenuhi kebutuhan daftar tag untuk tombol filter
+        $tags = KnowledgeTag::all();
+        
+        // Menggunakan nama file Anda: 'knowledgebase.blade.php' di folder user
+        return view('user.knowledgebase', compact('knowledgeBases', 'tags'));
+    }
     /**
      * Menampilkan form untuk membuat artikel baru.
      */

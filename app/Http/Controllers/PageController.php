@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Ticket;
 class PageController extends Controller
 {
     /**
@@ -69,4 +69,21 @@ class PageController extends Controller
         // Cukup tampilkan view statis 'pages.faq.blade.php'
         return view('pages.faq');
     }
+    public function trackTicket(Request $request)
+{
+    $request->validate(['ticket_id' => 'required|string']);
+
+    $ticketId = $request->ticket_id;
+    
+    // Cari tiket berdasarkan ID
+    $ticket = Ticket::find($ticketId);
+
+    // Jika tiket tidak ditemukan atau user tidak berhak melihatnya
+    if (!$ticket || $ticket->account_id !== Auth::id()) {
+        return redirect()->route('dashboard')->with('error', 'Tiket tidak ditemukan atau Anda tidak memiliki akses.');
+    }
+
+    // Jika tiket ditemukan, arahkan ke halaman detailnya
+    return redirect()->route('user.tickets.show', $ticket->id);
+}
 }
