@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\Account;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 class AccountSeeder extends Seeder
 {
@@ -13,6 +15,9 @@ class AccountSeeder extends Seeder
      */
     public function run(): void
     {
+        Account::factory()->count(20)->create([
+            'role_id' => Role::where('name', 'user')->first()->id,
+        ]);
         $roles = DB::table('roles')->pluck('id', 'name');
 
         DB::table('accounts')->insert([

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('priority_id');
             $table->unsignedBigInteger('sbu_id');
-            $table->unsignedBigInteger('departement_id');
+            $table->unsignedBigInteger('department_id');
             $table->timestamps();
         });
 

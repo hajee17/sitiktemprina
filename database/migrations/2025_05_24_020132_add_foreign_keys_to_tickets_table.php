@@ -57,9 +57,9 @@ return new class extends Migration
             ');
             DB::statement('
                 ALTER TABLE tickets 
-                ADD CONSTRAINT departement_id_foreign 
-                FOREIGN KEY (departement_id) 
-                REFERENCES departements(id) 
+                ADD CONSTRAINT department_id_foreign 
+                FOREIGN KEY (department_id) 
+                REFERENCES departments(id) 
                 ON DELETE RESTRICT
                 DEFERRABLE INITIALLY IMMEDIATE
             ');

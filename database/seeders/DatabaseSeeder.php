@@ -18,17 +18,16 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        $this->call([
+         $this->call([
             RoleSeeder::class,
+            LookupDataSeeder::class,
+        ]);
+
+        #seeder yang bergantung
+        $this->call([
             AccountSeeder::class,
-            TicketStatusSeeder::class,
-            TicketCategorySeeder::class,
-            TicketPrioritiesSeeder::class,
-            KnowledgeTagSeeder::class,
             TicketSeeder::class,
-            TicketCommentSeeder::class,
             KnowledgeBaseSeeder::class,
-            
-       ]);
+        ]);
     }
 }

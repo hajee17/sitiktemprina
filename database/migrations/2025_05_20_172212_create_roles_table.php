@@ -18,8 +18,8 @@ return new class extends Migration
             $table->timestamps();
             
         });
-        Schema::table('roles', function (Blueprint $table) {
-            $table->unique('name', 'roles_name_unique');
+        DB::transaction(function () {
+            DB::statement('ALTER TABLE roles ADD CONSTRAINT roles_name_unique UNIQUE (name)');
         });
     }
 
