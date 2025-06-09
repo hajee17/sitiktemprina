@@ -47,6 +47,22 @@ return new class extends Migration
                 ON DELETE RESTRICT
                 DEFERRABLE INITIALLY IMMEDIATE
             ');
+            DB::statement('
+                ALTER TABLE tickets 
+                ADD CONSTRAINT sbu_id_foreign 
+                FOREIGN KEY (sbu_id) 
+                REFERENCES sbus(id) 
+                ON DELETE RESTRICT
+                DEFERRABLE INITIALLY IMMEDIATE
+            ');
+            DB::statement('
+                ALTER TABLE tickets 
+                ADD CONSTRAINT departement_id_foreign 
+                FOREIGN KEY (departement_id) 
+                REFERENCES departements(id) 
+                ON DELETE RESTRICT
+                DEFERRABLE INITIALLY IMMEDIATE
+            ');
         });
     }
     
