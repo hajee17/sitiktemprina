@@ -18,12 +18,13 @@
                 <p class="mt-6 text-lg text-gray-600">
                     Laporkan kendala teknis, ajukan permintaan, dan lacak status penyelesaian masalah Anda dengan mudah melalui Sistem Informasi Ticketing (SITIK).
                 </p>
+                {{--Tombol mengarah ke Login dan Register --}}
                 <div class="mt-8 flex justify-center lg:justify-start gap-4">
-                    <a href="{{ route('user.tickets.create') }}" class="inline-block bg-black text-white font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-800 transition-colors">
-                        Buat Tiket Baru
+                    <a href="{{ route('login') }}" class="inline-block bg-black text-white font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-800 transition-colors">
+                        Masuk
                     </a>
-                    <a href="{{ route('tickets.track') }}" class="inline-block bg-white text-black border-2 border-black font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-100 transition-colors">
-                        Lacak Tiket
+                    <a href="{{ route('register') }}" class="inline-block bg-white text-black border-2 border-black font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-100 transition-colors">
+                        Daftar Sekarang
                     </a>
                 </div>
             </div>
@@ -37,7 +38,7 @@
     </div>
 </div>
 
-{{-- 2. Fitur Utama Section --}}
+{{-- 2. Fitur Utama Section (Tidak ada perubahan, bagian ini bagus untuk informasi) --}}
 <div class="bg-gray-50 py-16">
     <div class="container mx-auto px-6">
         <div class="text-center mb-12">
@@ -78,8 +79,9 @@
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-3xl font-bold text-gray-800">Siap Menyelesaikan Masalah Anda?</h2>
         <p class="text-gray-600 mt-2 mb-8">Jangan biarkan kendala teknis menghambat produktivitas Anda. Tim kami siap membantu.</p>
-        <a href="{{ route('user.tickets.create') }}" class="inline-block bg-black text-white font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-800 transition-colors">
-            Laporkan Masalah Sekarang
+        {{-- PERBAIKAN: Tombol mengarah ke Register --}}
+        <a href="{{ route('register') }}" class="inline-block bg-black text-white font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-800 transition-colors">
+            Gabung Sekarang
         </a>
     </div>
 </div>

@@ -1,105 +1,109 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserTicketController;
-use App\Http\Controllers\DeveloperController;
-use App\Http\Controllers\KnowledgeBaseController;
+
+// --- Import Semua Controller ---
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\User\DashboardController as UserDashboardController;
+use App\Http\Controllers\User\TicketController as UserTicketController;
+use App\Http\Controllers\User\KnowledgeBaseController as UserKnowledgeBaseController;
+use App\Http\Controllers\User\PageController as UserPageController; // Untuk halaman statis seperti FAQ & Akun Saya
+use App\Http\Controllers\Developer\DashboardController as DeveloperDashboardController;
+use App\Http\Controllers\Developer\TicketController as DeveloperTicketController;
+use App\Http\Controllers\Developer\AccountController as DeveloperAccountController;
+use App\Http\Controllers\Developer\KnowledgeBaseController as DeveloperKnowledgeBaseController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Di sini Anda dapat mendaftarkan rute web untuk aplikasi Anda.
-| Rute-rute ini dimuat oleh RouteServiceProvider dan semuanya akan
-| ditugaskan ke grup middleware "web". Buat sesuatu yang hebat!
+| Di sini Anda dapat mendaftarkan rute web untuk aplikasi Anda. Rute-rute
+| ini dimuat oleh RouteServiceProvider dan semuanya akan
+| ditetapkan ke grup middleware "web".
 |
 */
 
-//== 1. Rute Publik & Tamu (Guest) ==//
+// --- Rute Publik (Guest) ---
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
 
-// Halaman utama (Landing Page) untuk semua pengunjung
-Route::get('/', [PageController::class, 'home'])->name('welcome');
-
-// Rute Otentikasi (hanya bisa diakses oleh tamu/guest)
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-});
-
-// Rute Knowledge Base yang bisa diakses publik
-Route::get('/knowledge-base', [KnowledgeBaseController::class, 'publicIndex'])->name('kb.index');
-Route::get('/knowledge-base/{knowledgeBase}', [KnowledgeBaseController::class, 'publicShow'])->name('kb.show');
-
-
-//== 2. Rute Untuk Semua Pengguna yang Sudah Login ==//
-
-// Grup ini berisi semua rute yang memerlukan otentikasi
-Route::middleware('auth')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// --- Rute Otentikasi (Login, Register, Logout, Google Auth) ---
+Route::controller(AuthController::class)->group(function () {
+    Route::get('login', 'showLoginForm')->name('login')->middleware('guest');
+    Route::post('login', 'login')->middleware('guest');
+    Route::get('register', 'showRegistrationForm')->name('register')->middleware('guest');
+    Route::post('register', 'register')->middleware('guest');
     
-    // Halaman statis dan fitur umum
-    Route::get('/faq', [PageController::class, 'faq'])->name('faq');
-    Route::get('/my-account', [PageController::class, 'myAccount'])->name('my.account');
-    Route::get('/track-ticket', [PageController::class, 'trackTicket'])->name('tickets.track');
+    // Rute logout harus diakses oleh user yang sudah login
+    Route::post('logout', 'logout')->name('logout')->middleware('auth');
 
-    // Aksi terkait profil (ganti password, hapus akun)
-    Route::patch('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Rute untuk otentikasi Google
+    Route::get('auth/google', 'redirectToGoogle')->name('login.google')->middleware('guest');
+    Route::get('auth/google/callback', 'handleGoogleCallback')->middleware('guest');
 });
 
 
-//== 3. Rute Khusus untuk Pengguna Biasa (User) ==//
+// --- Grup Rute untuk Pengguna yang Sudah Terotentikasi ---
+Route::middleware(['auth'])->group(function () {
 
-// Rute di grup ini hanya bisa diakses oleh role 'user'
-// URL akan memiliki prefix '/user/' dan nama rute 'user.'
-Route::middleware(['auth', 'role:user'])->prefix('user')->name('user.')->group(function () {
-    
-    // Rute untuk dashboard user -> URL: /user/dashboard, Nama: user.dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Redirect /dashboard ke dashboard yang sesuai dengan peran user
+    Route::get('/dashboard', function () {
+        if (Auth::user()->isDeveloper()) {
+            return redirect()->route('developer.dashboard');
+        }
+        return redirect()->route('user.dashboard');
+    })->name('dashboard');
 
-    // Rute resource untuk tiket (membuat rute: user.tickets.index, .create, .store, .show, .destroy)
-    Route::resource('tickets', UserTicketController::class)->except(['edit', 'update']);
-});
+    // --- Grup Rute untuk Peran 'USER' ---
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
+
+        // Resourceful-like routes untuk tiket user
+        Route::get('/tickets', [UserTicketController::class, 'index'])->name('tickets.index'); // MyTicket.blade.php
+        Route::get('/tickets/create', [UserTicketController::class, 'create'])->name('tickets.create'); // createTicket.blade.php
+        Route::post('/tickets', [UserTicketController::class, 'store'])->name('tickets.store');
+        Route::get('/tickets/{ticket}', [UserTicketController::class, 'show'])->name('tickets.show'); // LacakTicket.blade.php
+        Route::post('/tickets/{ticket}/cancel', [UserTicketController::class, 'cancel'])->name('tickets.cancel');
+
+        // Rute untuk Knowledge Base
+        Route::get('/knowledgebase', [UserKnowledgeBaseController::class, 'index'])->name('knowledgebase.index');
+        Route::get('/knowledgebase/{knowledgeBase}', [UserKnowledgeBaseController::class, 'show'])->name('knowledgebase.show');
+
+        // Rute untuk Halaman Lainnya
+        Route::get('/my-account', [UserPageController::class, 'myAccount'])->name('account');
+        Route::get('/faq', [UserPageController::class, 'faq'])->name('faq');
+    });
 
 
-//== 4. Rute Khusus untuk Pengembang (Developer) ==//
+    // --- Grup Rute untuk Peran 'DEVELOPER' ---
+    // Middleware 'role:developer' akan memastikan hanya developer yang bisa akses
+    Route::prefix('developer')->name('developer.')->middleware('role:developer')->group(function () {
+        
+        Route::get('/dashboard', [DeveloperDashboardController::class, 'index'])->name('dashboard');
 
-// Rute di grup ini hanya bisa diakses oleh role 'developer'
-// URL akan memiliki prefix '/developer/' dan nama rute 'developer.'
-Route::middleware(['auth', 'role:developer'])->prefix('developer')->name('developer.')->group(function () {
-    
-    // Dashboard Developer
-    Route::get('/dashboard', [DeveloperController::class, 'dashboard'])->name('dashboard');
+        // Rute untuk Manajemen Tiket oleh Developer
+        Route::controller(DeveloperTicketController::class)->group(function () {
+            Route::get('/tickets', 'index')->name('tickets.index'); // Ambil Tiket
+            Route::post('/tickets/{ticket}/take', 'take')->name('tickets.take');
+            Route::get('/my-tickets', 'myTickets')->name('myticket');
+            Route::get('/manage-tickets', 'manageAll')->name('kelola-ticket');
+            Route::put('/tickets/{ticket}', 'update')->name('tickets.update');
+            Route::delete('/tickets/{ticket}', 'destroy')->name('tickets.destroy');
+            // Jika ada detail view spesifik untuk developer, tambahkan di sini.
+            Route::get('/tickets/{ticket}/detail', 'show')->name('tickets.show'); 
+        });
 
-    // Manajemen Tiket oleh Developer
-    Route::get('/tickets-new', [DeveloperController::class, 'allTickets'])->name('allTickets');
-    Route::get('/my-tickets', [DeveloperController::class, 'myTickets'])->name('myTickets');
-    Route::get('/my-tickets/{ticket}/edit', [DeveloperController::class, 'editTicket'])->name('tickets.edit');
-    Route::get('/manage-tickets', [DeveloperController::class, 'manageTickets'])->name('manageTickets');
-    Route::get('/tickets/{ticket}', [DeveloperController::class, 'show'])->name('tickets.show');
-    
-    // Aksi pada Tiket
-    Route::post('/tickets/{ticket}/assign', [DeveloperController::class, 'assignTicket'])->name('tickets.assign');
-    Route::patch('/tickets/{ticket}/complete', [DeveloperController::class, 'completeTicket'])->name('tickets.complete');
-    Route::patch('/tickets/{ticket}/status', [DeveloperController::class, 'updateStatus'])->name('tickets.updateStatus');
-    Route::post('/tickets/{ticket}/comments', [DeveloperController::class, 'addComment'])->name('comments.add');
-    Route::put('/tickets/{ticket}', [DeveloperController::class, 'updateTicket'])->name('tickets.update');
-    Route::delete('/tickets/{ticket}', [DeveloperController::class, 'destroyTicket'])->name('tickets.destroy');
-    
-    // Manajemen Akun
-    Route::get('/accounts', [DeveloperController::class, 'kelolaAkun'])->name('kelolaAkun');
-    Route::post('/accounts', [DeveloperController::class, 'storeAkun'])->name('akun.store');
-    Route::get('/accounts/{account}/edit', [DeveloperController::class, 'editAkun'])->name('accounts.edit');
-    Route::put('/accounts/{account}', [DeveloperController::class, 'updateAkun'])->name('akun.update');
-    Route::delete('/accounts/{account}', [DeveloperController::class, 'destroyAkun'])->name('akun.destroy');
+        // Rute untuk Manajemen Akun (CRUD)
+        // Menggunakan Route::resource akan secara otomatis membuat rute index, create, store, show, edit, update, destroy
+        Route::resource('akun', DeveloperAccountController::class)->names([
+            'index' => 'kelola-akun',
+            // sesuaikan nama lain jika perlu
+        ]);
+        
+        // Rute untuk Manajemen Knowledge Base (CRUD)
+        Route::resource('knowledgebase', DeveloperKnowledgeBaseController::class);
 
-    // Manajemen Knowledge Base (Otomatis membuat rute: index, create, store, show, edit, update, destroy)
-    Route::resource('knowledgebase', KnowledgeBaseController::class)->parameters(['knowledgebase' => 'knowledgeBase']);
+    });
 });

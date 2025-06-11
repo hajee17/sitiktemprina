@@ -67,29 +67,30 @@
 
     <header class="bg-black text-white py-4 px-6 flex items-center justify-between">
         <!-- Logo -->
-        <a href="{{ route('dashboard') }}">
+        <a href="{{ Auth::check() ? route('dashboard') : route('welcome') }}">
             <img src="{{ asset('images/Logo1.png') }}" alt="Logo Temprina SITIK" class="h-10">
         </a>
     
         <!-- Navigasi -->
         <nav>
             <ul class="flex items-center space-x-6 text-lg font-semibold">
-                <li><a href="{{ route('dashboard') }}#kategori" class="hover:text-gray-300">Kategori</a></li>
-                <li><a href="{{ url('/faq') }}" class="hover:text-gray-300">FAQ</a></li>
-    
                 @auth
-                    <li><a href="{{ route('tickets.index') }}" class="hover:text-gray-300">Tiket Saya</a></li>
-                    <li><a href="{{ url('/knowledgebase') }}" class="hover:text-gray-300">Knowledge Base</a></li>
-                    <li><a href="{{ url('/myaccount') }}" class="hover:text-gray-300">Akun Saya</a></li>
+                    <li><a href="{{ route('user.dashboard') }}#kategori" class="hover:text-gray-300">Kategori</a></li>
+                    <li><a href="{{ route('user.faq') }}" class="hover:text-gray-300">FAQ</a></li>
+                    {{-- PERBAIKAN: Menggunakan nama rute yang benar --}}
+                    <li><a href="{{ route('user.tickets.index') }}" class="hover:text-gray-300">Tiket Saya</a></li>
+                    <li><a href="{{ route('user.knowledgebase.index') }}" class="hover:text-gray-300">Knowledge Base</a></li>
+                    <li><a href="{{ route('user.account') }}" class="hover:text-gray-300">Akun Saya</a></li>
                     <li>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" class="hover:text-gray-300">Logout</button>
+                            <button type="submit" class="hover:text-gray-300 bg-transparent border-none text-white text-lg font-semibold cursor-pointer">Logout</button>
                         </form>
                     </li>
                 @else
-                    <li><a href="{{ url('/login') }}" class="hover:text-gray-300">Login</a></li>
-                    <li><a href="{{ url('/register') }}" class="hover:text-gray-300">Register</a></li>
+                    <li><a href="{{ route('welcome') }}#fitur" class="hover:text-gray-300">Fitur</a></li>
+                    <li><a href="{{ route('login') }}" class="hover:text-gray-300">Login</a></li>
+                    <li><a href="{{ route('register') }}" class="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200">Register</a></li>
                 @endauth
             </ul>
         </nav>
