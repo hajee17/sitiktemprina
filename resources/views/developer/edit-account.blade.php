@@ -19,7 +19,7 @@
     <div class="mt-[80px] ml-[280px] px-10 py-6 w-[calc(100%-280px)] overflow-auto">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-semibold text-[#1F1F1F]">Edit Akun</h1>
-            <a href="{{ route('kelola.akun') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Kembali</a>
+            <a href="{{ route('developer.akun.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Kembali</a>
         </div>
 
         @if(session('success'))
@@ -35,8 +35,8 @@
         @endif
 
         <!-- Form -->
-        <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
-            <form action="{{ route('account.update', $account->ID_Account) }}" method="POST">
+         <div class="bg-white p-6 rounded-xl shadow border border-gray-200">
+            <form action="{{ route('developer.akun.update', $account->id) }}" method="POST">
                 @csrf
                 @method('PUT')
                 

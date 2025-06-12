@@ -50,12 +50,13 @@ class AccountController extends Controller
         
         Account::create([
             'name' => $request->Name,
+            'username' => strtolower(explode('@', $request->Email)[0] . rand(10, 99)), // Membuat username dari email
             'email' => $request->Email,
             'phone' => $request->Telp_Num,
             'role_id' => $request->ID_Role,
-            'password' => Hash::make( 'password' ), // Default password
+            'password' => Hash::make('password'), // Memberi password default
         ]);
-        
+
         return back()->with('success', 'User baru berhasil ditambahkan.');
     }
 

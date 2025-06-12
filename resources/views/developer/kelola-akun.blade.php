@@ -19,15 +19,14 @@
             </div>
         </div>
 
-        <!-- Search & Tambah User -->
+       <!-- Search & Tambah User -->
         <div class="flex justify-between items-center mb-4">
-            <form action="{{ route('developer.kelola-akun') }}" method="GET" class="flex">
+            <form action="{{ route('developer.akun.index') }}" method="GET" class="flex">
                 <input type="text" name="search" placeholder="Cari nama/email..." value="{{ request('search') }}"
                     class="px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button type="submit"
                     class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600">Cari</button>
             </form>
-
             <button onclick="document.getElementById('modal-tambah').classList.remove('hidden')"
                 class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                 + Tambah User
@@ -52,22 +51,19 @@
                 <tbody class="text-sm text-gray-700">
                     @forelse($accounts as $index => $user)
                     <tr class="border-b border-gray-200 hover:bg-gray-100" id="user-row-{{ $user->ID_Account }}">
-                        <td class="px-4 py-3">{{ $index + $accounts->firstItem() }}</td>
-                        <td class="px-4 py-3">{{ $user->ID_Account }}</td>
-                        <td class="px-4 py-3">
-                            <span class="view-mode">{{ $user->Name }}</span>
-                            <input type="text" name="Name" value="{{ $user->Name }}"
-                                class="edit-mode hidden w-full px-2 py-1 border rounded">
+                        <td class="px-6 py-4">{{ $index + $accounts->firstItem() }}</td>
+                        <td class="px-6 py-4 font-mono text-gray-500">{{ $user->id }}</td>
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                            <span class="view-mode">{{ $user->name }}</span>
+                            <input type="text" name="name" value="{{ $user->name }}" class="edit-mode hidden w-full px-2 py-1 border rounded">
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="view-mode">{{ $user->Email }}</span>
-                            <input type="email" name="Email" value="{{ $user->Email }}"
-                                class="edit-mode hidden w-full px-2 py-1 border rounded">
+                        <td class="px-6 py-4">
+                            <span class="view-mode">{{ $user->email }}</span>
+                            <input type="email" name="email" value="{{ $user->email }}" class="edit-mode hidden w-full px-2 py-1 border rounded">
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="view-mode">{{ $user->Telp_Num ?? '-' }}</span>
-                            <input type="text" name="Telp_Num" value="{{ $user->Telp_Num }}"
-                                class="edit-mode hidden w-full px-2 py-1 border rounded">
+                        <td class="px-6 py-4">
+                            <span class="view-mode">{{ $user->phone ?? '-' }}</span>
+                            <input type="text" name="phone" value="{{ $user->phone }}" class="edit-mode hidden w-full px-2 py-1 border rounded">
                         </td>
                         <td class="px-4 py-3">
                             <span class="view-mode">{{ $user->ID_Role == 1 ? 'Developer' : 'User' }}</span>
@@ -96,7 +92,7 @@
                                     class="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 text-sm">Batal</button>
                             </div>
 
-                            <form action="{{ route('developer.destroy', $user->ID_Account) }}" method="POST"
+                            <form action="{{ route('developer.akun.destroy', $user->id) }}" method="POST"
                                 onsubmit="return confirm('Yakin ingin menghapus akun ini?')">
                                 @csrf
                                 @method('DELETE')
@@ -123,29 +119,48 @@
     </div>
 
     <!-- Modal Tambah User -->
-    <div id="modal-tambah" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg w-full max-w-md shadow">
-            <h2 class="text-xl font-semibold mb-4">Tambah User Baru</h2>
-            <form action="{{ route('developer.store') }}" method="POST">
+    <div id="modal-tambah" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center @if(!$errors->any()) hidden @endif">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Tambah User Baru</h2>
+                <button type="button" onclick="document.getElementById('modal-tambah').classList.add('hidden')" class="text-gray-500 hover:text-gray-800">&times;</button>
+            </div>
+            <form action="{{ route('developer.akun.store') }}" method="POST">
                 @csrf
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium">Nama</label>
-                    <input type="text" name="Name" required class="w-full border px-3 py-2 rounded">
+                    <label for="Name" class="block mb-1 font-medium">Nama</label>
+                    <input type="text" id="Name" name="Name" value="{{ old('Name') }}" required class="w-full border px-3 py-2 rounded @error('Name') border-red-500 @enderror">
+                    {{-- PERBAIKAN: Menampilkan error untuk Nama --}}
+                    @error('Name')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium">Email</label>
-                    <input type="email" name="Email" required class="w-full border px-3 py-2 rounded">
+                    <label for="Email" class="block mb-1 font-medium">Email</label>
+                    <input type="email" id="Email" name="Email" value="{{ old('Email') }}" required class="w-full border px-3 py-2 rounded @error('Email') border-red-500 @enderror">
+                     {{-- PERBAIKAN: Menampilkan error untuk Email --}}
+                    @error('Email')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium">No. Telp</label>
-                    <input type="text" name="Telp_Num" class="w-full border px-3 py-2 rounded">
+                    <label for="Telp_Num" class="block mb-1 font-medium">No. Telp</label>
+                    <input type="text" id="Telp_Num" name="Telp_Num" value="{{ old('Telp_Num') }}" class="w-full border px-3 py-2 rounded @error('Telp_Num') border-red-500 @enderror">
+                     {{-- PERBAIKAN: Menampilkan error untuk No. Telp --}}
+                    @error('Telp_Num')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="mb-3">
-                    <label class="block mb-1 font-medium">Role</label>
-                    <select name="ID_Role" class="w-full border px-3 py-2 rounded">
-                        <option value="1">Developer</option>
-                        <option value="2" selected>User</option>
+                    <label for="ID_Role" class="block mb-1 font-medium">Role</label>
+                    <select id="ID_Role" name="ID_Role" class="w-full border px-3 py-2 rounded @error('ID_Role') border-red-500 @enderror">
+                        <option value="1" {{ old('ID_Role') == 1 ? 'selected' : '' }}>Developer</option>
+                        <option value="2" {{ old('ID_Role') == 2 ? 'selected' : '' }}>User</option>
                     </select>
+                     {{-- PERBAIKAN: Menampilkan error untuk Role --}}
+                    @error('ID_Role')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" onclick="document.getElementById('modal-tambah').classList.add('hidden')"

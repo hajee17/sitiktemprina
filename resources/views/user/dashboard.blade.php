@@ -10,7 +10,7 @@
          style="background-image: url('{{ asset('images/frame21.png') }}');">
         <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Selamat Datang di SITIK!</h2>
         <p class="text-lg text-gray-700 mb-6">Ada yang perlu kami bantu? Buat tiket baru sekarang.</p>
-        <a href="{{ url('tickets/create') }}" class="inline-block bg-black text-white font-bold py-3 px-6 rounded-full">
+        <a href="{{ route('user.tickets.create') }}" class="inline-block bg-black text-white font-bold py-3 px-6 rounded-full">
             Buat Tiket Baru
         </a>
     </div>
@@ -20,10 +20,12 @@
     <h3 class="text-2xl font-semibold text-gray-800">Cek Status Tiket Anda</h3>
     <p class="text-gray-600 mb-4">Masukkan nomor tiket untuk melacak tiket Anda!</p>
     <div class="flex justify-center">
-        <input type="text" placeholder="Contoh : LGA123456" class="w-2/5 p-3 border rounded-l-lg focus:outline-none">
-        <a href="{{ url('lacakticket') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-r-lg">
+        <form action="#" method="GET" id="trackTicketForm" class="flex justify-center">
+        <input type="text" id="ticketIdInput" placeholder="Contoh: 123" class="w-2/5 p-3 border rounded-l-lg focus:outline-none">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-r-lg">
             Lacak Tiket
-        </a>
+        </button>
+    </form>
     </div>
 </div>
 
@@ -83,4 +85,16 @@
     </a>
 </div>
 
+@push('scripts')
+<script>
+    document.getElementById('trackTicketForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const ticketId = document.getElementById('ticketIdInput').value;
+        if (ticketId) {
+            const baseUrl = "{{ url('user/tickets') }}";
+            window.location.href = `${baseUrl}/${ticketId}`;
+        }
+    });
+</script>
+@endpush
 @endsection

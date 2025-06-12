@@ -1,88 +1,103 @@
 @extends('layouts.developer')
 
 @section('content')
-<div style="position: relative; width: 1440px; min-height: 1024px; background: #F5F6FA;">
-    <!-- Main Content -->
-    <div style="position: absolute; left: 280px; top: 64px; right: 20px; bottom: 20px; padding: 40px; overflow-y: auto;">
-        
-        <h2 style="font-weight: bold; font-size: 24px; margin-bottom: 24px;">Detail Tiket</h2>
+<div class="bg-gray-50 p-6 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="font-bold text-2xl mb-6">Detail Tiket</h2>
 
-        <div style="display: flex; gap: 32px;">
+        <div class="flex flex-col lg:flex-row gap-6">
 
-            <!-- Kartu Tiket -->
-            <div style="flex: 1; background: #fff; border-radius: 12px; border: 1px solid #DADADA; padding: 32px; display: flex; flex-direction: column; gap: 16px;">
-
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <!-- Kolom Kiri: Detail dan Form Update -->
+            <div class="flex-grow bg-white rounded-xl shadow-md border p-6">
+                
+                <div class="flex justify-between items-start mb-4">
                     <div>
-                        <div style="font-size: 20px; font-weight: bold;">Tidak bisa akses internet</div>
-                        <div style="color: #555;">NET020425001</div>
-                        <div style="font-size: 12px; color: #888;">2 Apr 2025 – 11:12</div>
+                        <h1 class="text-xl font-bold text-gray-800">{{ $ticket->title }}</h1>
+                        <p class="text-sm text-gray-500 font-mono">#{{ $ticket->id }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $ticket->created_at->format('d M Y – H:i') }}</p>
                     </div>
-                    <div style="background-color: #FF5C5C; color: white; font-size: 12px; font-weight: bold; padding: 4px 12px; border-radius: 12px;">Tinggi</div>
+                    <span class="text-xs font-semibold px-3 py-1 rounded-full 
+                        @if(optional($ticket->priority)->name == 'Tinggi') bg-red-100 text-red-800
+                        @elseif(optional($ticket->priority)->name == 'Sedang') bg-yellow-100 text-yellow-800
+                        @else bg-green-100 text-green-800 @endif">
+                        {{ optional($ticket->priority)->name ?? 'N/A' }}
+                    </span>
                 </div>
 
-                <div style="font-size: 14px;">
-                    <strong>Pembuat Tiket:</strong> Dinda Ayu – Staf Administrasi<br>
-                    <strong>Lokasi:</strong> Lantai 2 – Ruang Keuangan<br>
-                    <strong>Kategori Tiket:</strong> Jaringan
+                <div class="text-sm text-gray-700 space-y-1 border-t pt-4 mb-4">
+                    <p><strong>Pembuat Tiket:</strong> {{ optional($ticket->author)->name ?? 'N/A' }} – {{ optional($ticket->author->role)->name ?? 'N/A' }}</p>
+                    <p><strong>Lokasi:</strong> {{ $ticket->department->name ?? 'N/A' }} / {{ $ticket->sbu->name ?? 'N/A' }}</p>
+                    <p><strong>Kategori Tiket:</strong> {{ optional($ticket->category)->name ?? 'N/A' }}</p>
                 </div>
 
                 <!-- Bukti Foto -->
-                <div style="display: flex; gap: 8px;">
-                    <img src="{{ asset('images/bukti1.png') }}" style="width: 100px; height: 60px; border-radius: 8px; object-fit: cover;">
-                    <img src="{{ asset('images/bukti2.png') }}" style="width: 100px; height: 60px; border-radius: 8px; object-fit: cover;">
-                    <img src="{{ asset('images/bukti3.png') }}" style="width: 100px; height: 60px; border-radius: 8px; object-fit: cover;">
-                </div>
+                @if($ticket->attachments->isNotEmpty())
+                    <div class="flex gap-3 mb-4">
+                        @foreach($ticket->attachments as $attachment)
+                            <a href="{{ asset('storage/' . $attachment->path) }}" target="_blank">
+                                <img src="{{ asset('storage/' . $attachment->path) }}" class="w-24 h-24 object-cover rounded-md border hover:opacity-80">
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
 
-                <p style="font-size: 14px; color: #333;">
-                    Sejak pagi ini, koneksi internet di Lantai 2 - Ruang Keuangan sering terputus dan mengalami kecepatan yang sangat lambat. Beberapa rekan kerja juga melaporkan kesulitan mengakses sistem internal perusahaan dan layanan cloud. Saya sudah mencoba merestart router, tetapi masalah masih terjadi. Mohon dilakukan pengecekan lebih lanjut.
+                <p class="text-sm text-gray-800 bg-gray-50 p-4 rounded-md">
+                    {{ $ticket->description }}
                 </p>
 
                 <!-- Form update status -->
-                <form method="POST" action="#">
+                {{-- PERBAIKAN DI SINI --}}
+                <form method="POST" action="{{ route('developer.tickets.update', $ticket->id) }}" class="mt-6 border-t pt-6" enctype="multipart/form-data">
                     @csrf
-                    <label for="status" style="font-weight: 600;">Perbarui status tiket<span style="color: red;">*</span></label>
-                    <select id="status" name="status" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #CCC; margin-bottom: 16px;">
-                        <option value="">-- Perbarui status tiket --</option>
-                        <option value="proses">Sedang diproses</option>
-                        <option value="selesai">Masalah telah ditangani</option>
-                    </select>
+                    @method('PUT') {{-- Menggunakan metode PUT untuk update --}}
 
-                    <label for="penjelasan" style="font-weight: 600;">Penjelasan atau tindakan perbaikan<span style="color: red;">*</span></label>
-                    <textarea id="penjelasan" name="penjelasan" required style="width: 100%; height: 100px; padding: 12px; border-radius: 8px; border: 1px solid #CCC; margin-bottom: 16px;"></textarea>
-
-                    <label style="font-weight: 600;">Unggah bukti penyelesaian</label>
-                    <div style="width: 100%; padding: 20px; border: 2px dashed #DADADA; text-align: center; border-radius: 12px; font-size: 14px; color: #888; margin-bottom: 24px;">
-                        Upload a file or drag and drop<br>
-                        JPEG, JPG, PNG, PDF (max 10MB per file)<br>
-                        Maksimal 3 file.
+                    {{-- Menambahkan input tersembunyi untuk title agar validasi lolos --}}
+                    <input type="hidden" name="title" value="{{ $ticket->title }}">
+                    
+                    <div class="mb-4">
+                        <label for="status_id" class="block text-sm font-medium text-gray-700 mb-1">Perbarui status tiket<span class="text-red-500">*</span></label>
+                        <select id="status_id" name="status_id" required class="w-full p-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="">-- Pilih status --</option>
+                            @foreach(App\Models\TicketStatus::all() as $status)
+                                <option value="{{ $status->id }}" {{ $ticket->status_id == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
-                    <button type="submit" style="padding: 12px 24px; background: black; color: white; border-radius: 8px; font-weight: bold;">Simpan Perubahan</button>
+                    <div class="mb-4">
+                        <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">Penjelasan atau tindakan perbaikan (opsional)</label>
+                        <textarea id="comment" name="comment" rows="3" class="w-full p-2 border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" placeholder="Contoh: Sedang melakukan pengecekan router di lokasi."></textarea>
+                    </div>
+                    
+                    {{-- @todo: Implement file upload logic in controller for this form --}}
+                    {{-- <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Unggah bukti penyelesaian (opsional)</label>
+                        <input type="file" name="attachments[]" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"/>
+                    </div> --}}
+
+                    <button type="submit" class="w-full bg-black text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-gray-800 transition">Simpan Perubahan</button>
                 </form>
             </div>
 
-            <!-- Riwayat -->
-            <div style="width: 280px;">
-                <h3 style="font-weight: bold; font-size: 18px; margin-bottom: 16px;">Riwayat Penanganan</h3>
-                <ul style="list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: 12px;">
-                    <li style="background: #fff; padding: 12px; border-radius: 8px; border-left: 5px solid #FF5C5C;">
-                        <strong>02 April 2025 – 11:45</strong><br>
-                        Permasalahan selesai ditangani, menunggu konfirmasi dari pelapor.
-                    </li>
-                    <li style="background: #fff; padding: 12px; border-radius: 8px; border-left: 5px solid #FF5C5C;">
-                        <strong>02 April 2025 – 11:40</strong><br>
-                        Masalah ditemukan, sedang dalam tahap perbaikan.
-                    </li>
-                    <li style="background: #fff; padding: 12px; border-radius: 8px; border-left: 5px solid #FF5C5C;">
-                        <strong>02 April 2025 – 11:30</strong><br>
-                        Pemeriksaan di lokasi.
-                    </li>
-                    <li style="background: #fff; padding: 12px; border-radius: 8px; border-left: 5px solid #FF5C5C;">
-                        <strong>02 April 2025 – 11:12</strong><br>
-                        Tiket dibuat.
-                    </li>
-                </ul>
+            <!-- Kolom Kanan: Riwayat -->
+            <div class="w-full lg:w-80 lg:flex-shrink-0">
+                <h3 class="font-bold text-lg mb-4">Riwayat Penanganan</h3>
+                <div class="space-y-4">
+                    @forelse($ticket->comments->sortByDesc('created_at') as $comment)
+                    <div class="flex gap-3">
+                        <div class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0"></div>
+                        <div>
+                            <p class="text-sm font-semibold">{{ optional($comment->author)->name }}</p>
+                            <p class="text-xs text-gray-600">{{ $comment->message }}</p>
+                            <p class="text-xs text-gray-400 mt-1">{{ $comment->created_at->diffForHumans() }}</p>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center text-sm text-gray-500 py-4">
+                        <p>Belum ada riwayat penanganan.</p>
+                    </div>
+                    @endforelse
+                </div>
             </div>
 
         </div>

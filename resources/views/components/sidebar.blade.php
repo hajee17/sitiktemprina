@@ -1,6 +1,6 @@
 <div class="h-full flex flex-col overflow-hidden">
     <!-- Logo -->
-    <div class="p-4 border-b flex items-center justify-center" :class="open ? 'justify-start' : 'justify-center'">
+    <div class="p-4 border-b flex items-center" :class="open ? 'justify-start' : 'justify-center'">
         <img src="{{ asset('images/logo.png') }}" alt="Logo" class="h-8" :class="open ? 'block' : 'hidden'">
         <span class="ml-2 font-bold text-lg" x-show="open">DevPanel</span>
         <img src="{{ asset('images/logo-icon.png') }}" alt="Logo" class="h-8" :class="open ? 'hidden' : 'block'">
@@ -14,7 +14,8 @@
                     ['name' => 'Dashboard', 'icon' => '🏠', 'route' => 'developer.dashboard'],
                     ['name' => 'Ambil Tiket', 'icon' => '🎟️', 'route' => 'developer.tickets.index'],
                     ['name' => 'Tiket Saya', 'icon' => '📄', 'route' => 'developer.myticket'],
-                    ['name' => 'Knowledge Base', 'icon' => '📚', 'route' => 'developer.knowledgebase'],
+                    // PERBAIKAN DI SINI: Menambahkan .index pada nama rute
+                    ['name' => 'Knowledge Base', 'icon' => '📚', 'route' => 'developer.knowledgebase.index'],
                 ];
             @endphp
 
@@ -22,7 +23,7 @@
                 <li>
                     <a href="{{ route($item['route']) }}"
                        class="flex items-center rounded-lg p-3 transition-colors duration-200
-                              {{ request()->routeIs($item['route']) ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700' }}"
+                              {{ request()->routeIs($item['route'].'*') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700' }}"
                        :class="open ? 'justify-start gap-3' : 'justify-center'">
                         <span class="text-xl">{{ $item['icon'] }}</span>
                         <span x-show="open" class="whitespace-nowrap">{{ $item['name'] }}</span>
@@ -37,8 +38,9 @@
             <ul class="space-y-2">
                 @php
                     $adminItems = [
-                        ['name' => 'Kelola Akun', 'icon' => '👤', 'route' => 'developer.kelola-akun'],
-                        ['name' => 'Kelola Tiket', 'icon' => '🎫', 'route' => 'developer.kelola-ticket'],
+                        // PERBAIKAN: Menyesuaikan nama rute untuk resource
+                        ['name' => 'Kelola Akun', 'icon' => '👤', 'route' => 'developer.akun.index'],
+                        ['name' => 'Kelola Tiket', 'icon' => '�', 'route' => 'developer.kelola-ticket'],
                     ];
                 @endphp
 
@@ -46,7 +48,7 @@
                     <li>
                         <a href="{{ route($item['route']) }}"
                            class="flex items-center rounded-lg p-3 transition-colors duration-200
-                                  {{ request()->routeIs($item['route']) ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700' }}"
+                                  {{ request()->routeIs($item['route'].'*') ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700' }}"
                            :class="open ? 'justify-start gap-3' : 'justify-center'">
                             <span class="text-xl">{{ $item['icon'] }}</span>
                             <span x-show="open" class="whitespace-nowrap">{{ $item['name'] }}</span>
@@ -57,3 +59,4 @@
         </div>
     </nav>
 </div>
+�

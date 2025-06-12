@@ -15,7 +15,7 @@
         ] as $card)
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div class="text-sm font-medium text-gray-500">{{ $card['title'] }}</div>
-            <div class="text-2xl font-bold mt-1 {{ $card['color'] }}">{{ number_format($card['value']) }}</div>
+            <div class="text-2xl font-bold mt-1">{{ number_format($card['value']) }}</div>
         </div>
         @endforeach
     </div>
@@ -62,37 +62,38 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($latestTickets as $ticket)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $ticket->ID_Ticket }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $ticket->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span @class([
                                 'px-2 py-1 text-xs font-semibold rounded-full',
-                                'bg-red-100 text-red-800' => $ticket->Priority === 'Tinggi',
-                                'bg-yellow-100 text-yellow-800' => $ticket->Priority === 'Sedang',
-                                'bg-green-100 text-green-800' => $ticket->Priority === 'Rendah'
+                                'bg-red-100 text-red-800' => optional($ticket->priority)->name === 'Tinggi',
+                                'bg-yellow-100 text-yellow-800' => optional($ticket->priority)->name === 'Sedang',
+                                'bg-green-100 text-green-800' => optional($ticket->priority)->name === 'Rendah'
                             ])>
-                                {{ $ticket->Priority }}
+                                {{ optional($ticket->priority)->name }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->Title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $ticket->title }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ $ticket->created_at_formatted }}
+                            {{ $ticket->created_at->format('d M Y, H:i') }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
-                                $status = optional($ticket->latestStatus)->Status ?? 'Unknown';
+                                $statusName = optional($ticket->status)->name ?? 'Unknown';
                                 $statusColors = [
-                                    'Baru' => 'bg-blue-100 text-blue-800',
-                                    'Diproses' => 'bg-yellow-100 text-yellow-800',
-                                    'Selesai' => 'bg-green-100 text-green-800',
-                                    'Pending' => 'bg-orange-100 text-orange-800'
+                                    'Open' => 'bg-blue-100 text-blue-800',
+                                    'In Progress' => 'bg-yellow-100 text-yellow-800',
+                                    'Closed' => 'bg-green-100 text-green-800',
+                                    'On Hold' => 'bg-orange-100 text-orange-800'
                                 ];
                             @endphp
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800' }}">
-                                {{ $status }}
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full {{ $statusColors[$statusName] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ $statusName }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <a href="{{ route('developer.tickets.show', $ticket->ID_Ticket) }}" class="text-indigo-600 hover:text-indigo-900">Lihat Detail</a>
+                            {{-- PERBAIKAN DI SINI --}}
+                            <a href="{{ route('developer.tickets.show', ['ticket' => $ticket->id]) }}" class="text-indigo-600 hover:text-indigo-900">Lihat Detail</a>
                         </td>
                     </tr>
                     @empty
@@ -109,6 +110,7 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // ... (kode Javascript untuk chart tidak berubah)
     // Weekly Ticket Chart
     const weeklyCtx = document.getElementById('weeklyTicketChart').getContext('2d');
     new Chart(weeklyCtx, {

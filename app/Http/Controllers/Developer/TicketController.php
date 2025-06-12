@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Ticket;
 use App\Models\Account;
 use App\Models\TicketStatus;
-
+use App\Models\TicketPriority;
 class TicketController extends Controller
 {
     /**
@@ -18,32 +18,34 @@ class TicketController extends Controller
     {
         $query = Ticket::whereNull('assignee_id')
                     ->where('status_id', 1) // Hanya tiket 'Open'
-                    ->with(['author', 'priority', 'status', 'category']);
+                    ->with(['author', 'priority', 'status', 'category', 'sbu', 'department']);
 
         // Logika Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('id', $search)
-                  ->orWhereHas('author', function($q_author) use ($search) {
-                      $q_author->where('name', 'like', "%{$search}%");
-                  });
+                $q->where('title', 'like', "%{$search}%")->orWhere('id', $search);
             });
         }
         
-        // Logika Filter Kategori
-        if ($request->filled('category') && $request->category !== 'Semua') {
-            $query->whereHas('category', function($q_cat) use ($request) {
-                $q_cat->where('name', $request->category);
-            });
+        // Logika Filter Prioritas
+        if ($request->filled('priority_id')) {
+            $query->where('priority_id', $request->priority_id);
         }
         
-        $tickets = $query->latest()->paginate(9);
+        $tickets = $query->latest()->paginate(9)->withQueryString();
+        $priorities = TicketPriority::all();
 
-        return view('developer.ambil-ticket', compact('tickets'));
+        return view('developer.ambil-ticket', compact('tickets', 'priorities'));
     }
     
+    public function show(Ticket $ticket)
+    {
+        // Eager load relasi untuk ditampilkan di view
+        $ticket->load(['author.role', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author']);
+
+        return view('developer.detail-ticket', compact('ticket'));
+    }
     /**
      * Developer mengambil tiket.
      */
@@ -61,14 +63,37 @@ class TicketController extends Controller
     /**
      * Menampilkan tiket yang sedang ditangani developer. (myticket.blade.php)
      */
-    public function myTickets()
+    public function myTickets(Request $request)
     {
-        $tickets = Ticket::where('assignee_id', Auth::id())
-                        ->with(['author', 'priority', 'status', 'category', 'attachments', 'comments'])
-                        ->where('status_id', '!=', 4) // Bukan yang sudah 'Closed'
-                        ->latest()
-                        ->paginate(5);
-        return view('developer.myticket', compact('tickets'));
+        $query = Ticket::where('assignee_id', Auth::id())
+                        ->with(['author', 'priority', 'status', 'category'])
+                        ->where('status_id', '!=', 4); // Bukan yang sudah 'Closed'
+
+        // Logika Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")->orWhere('id', $search);
+            });
+        }
+        
+        // Logika Filter Prioritas
+        if ($request->filled('priority_id')) {
+            $query->where('priority_id', $request->priority_id);
+        }
+
+        // Logika Filter Status
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        $tickets = $query->latest()->paginate(10)->withQueryString();
+
+        // Data untuk dropdown filter
+        $priorities = TicketPriority::all();
+        $statuses = TicketStatus::where('name', '!=', 'Open')->get(); // Status yang relevan untuk tiket yg sedang dikerjakan
+
+        return view('developer.myticket', compact('tickets', 'priorities', 'statuses'));
     }
     
     /**
@@ -99,18 +124,30 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
+        // --- PERBAIKAN LOGIKA OTORISASI ---
+        // Pastikan tiket sudah ditugaskan ke developer yang sedang login
+        if ($ticket->assignee_id !== Auth::id()) {
+            // Jika tidak, tolak permintaan
+            abort(403, 'AKSI TIDAK DIIZINKAN. Anda bukan penanggung jawab tiket ini.');
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'status_id' => 'required|exists:ticket_statuses,id',
+            'comment' => 'nullable|string' // Komentar sekarang opsional
         ]);
 
         $ticket->update($request->only('title', 'status_id'));
         
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Tiket berhasil diperbarui.']);
+        // Jika ada komentar, simpan sebagai riwayat
+        if ($request->filled('comment')) {
+            $ticket->comments()->create([
+                'account_id' => Auth::id(),
+                'message' => $request->comment,
+            ]);
         }
 
-        return back()->with('success', 'Tiket berhasil diperbarui.');
+        return redirect()->route('developer.tickets.show', $ticket->id)->with('success', 'Tiket berhasil diperbarui.');
     }
     
     /**

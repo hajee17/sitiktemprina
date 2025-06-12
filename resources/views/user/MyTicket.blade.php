@@ -1,112 +1,91 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="container">
-    <h1 class="text-center my-4">Tiket Saya</h1>
-    <p class="text-center">Berikut adalah tiket yang telah Anda buat. Kami akan segera menangani setiap permintaan Anda!</p>
+<div class="container mx-auto px-4 py-8">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold">Tiket Saya</h1>
+        <p class="text-gray-600 mt-2">Berikut adalah tiket yang telah Anda buat. Kami akan segera menangani setiap permintaan Anda!</p>
+    </div>
 
-    @if($tickets->count() >= 0)
-        <div class="d-flex flex-column align-items-center">
+    @if($tickets->isNotEmpty())
+        <div class="space-y-4">
             @foreach($tickets as $ticket)
-                <div class="card mb-3" style="width: 80%; border-radius: 12px; border: 1px solid #ddd;">
-                    <div class="card-body d-flex">
-                        <!-- Gambar bisa disesuaikan berdasarkan kategori tiket -->
+                <div class="bg-white rounded-xl shadow-md border overflow-hidden">
+                    <div class="p-4 flex flex-col md:flex-row gap-4">
+                        {{-- Gambar bisa disesuaikan berdasarkan kategori tiket --}}
                         @php
                             $imagePath = 'images/';
-                            switch($ticket->Category) {
-                                case 'Network':
-                                    $imagePath .= 'router.jpg';
-                                    break;
-                                case 'Hardware':
-                                    $imagePath .= 'hardware.jpg';
-                                    break;
-                                case 'Software':
-                                    $imagePath .= 'software.jpg';
-                                    break;
-                                default:
-                                    $imagePath .= 'default.jpg';
+                            switch(optional($ticket->category)->name) {
+                                case 'Jaringan': $imagePath .= 'router.jpg'; break;
+                                case 'Perangkat Keras': $imagePath .= 'hardware.jpg'; break;
+                                case 'Perangkat Lunak': $imagePath .= 'software.jpg'; break;
+                                default: $imagePath .= 'default.jpg';
                             }
                         @endphp
-                        <img src="{{ asset($imagePath) }}" alt="Gambar Tiket" class="rounded" style="width: 120px; height: 120px; object-fit: cover;">
+                        <img src="{{ asset($imagePath) }}" alt="Gambar Tiket" class="w-full md:w-32 h-32 object-cover rounded-lg flex-shrink-0">
                         
-                        <div class="ms-3" style="flex-grow: 1;">
-                            <h5 class="card-title text-primary">{{ $ticket->code }}</h5>
-                            <p class="mb-1"><strong>Judul:</strong> {{ $ticket->Judul_Tiket }}</p>
-                            <p class="mb-1"><strong>Tanggal Dibuat:</strong> {{ date('d M Y', strtotime($ticket->created_at ?? now())) }}</p>
-                            <p class="mb-1"><strong>Lokasi:</strong> {{ $ticket->Location }}</p>
-                            <p class="mb-1"><strong>Kategori:</strong> {{ $ticket->Category }}</p>
-                            <p class="text-muted">{{ Str::limit($ticket->Desc, 100, '...') }}</p>
+                        <div class="flex-grow">
+                            {{-- PERBAIKAN: Menggunakan properti 'id' dan 'title' --}}
+                            <h5 class="text-blue-600 font-bold text-lg">#{{ $ticket->id }} - {{ $ticket->title }}</h5>
+                            <div class="text-sm text-gray-600 mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+                                {{-- PERBAIKAN: Menggunakan created_at object dan relasi yang benar --}}
+                                <p><strong>Tanggal Dibuat:</strong> {{ $ticket->created_at->format('d M Y') }}</p>
+                                <p><strong>Kategori:</strong> {{ optional($ticket->category)->name ?? 'N/A' }}</p>
+                                <p><strong>Lokasi:</strong> {{ optional($ticket->department)->name ?? 'N/A' }}</p>
+                                <p><strong>Prioritas:</strong> {{ optional($ticket->priority)->name ?? 'N/A' }}</p>
+                            </div>
+                            {{-- PERBAIKAN: Menggunakan 'description' --}}
+                            <p class="text-sm text-gray-500 mt-3">{{ Str::limit($ticket->description, 120, '...') }}</p>
                         </div>
 
-                        <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 text-center">
                             @php
+                                $statusName = optional($ticket->status)->name ?? 'Unknown';
                                 $statusColors = [
-                                    'Diverifikasi' => 'primary',
-                                    'Diproses' => 'warning',
-                                    'Selesai' => 'success',
-                                    'Dibatalkan' => 'danger',
-                                    'Pending' => 'info',
-                                    'Konfirmasi' => 'secondary'
+                                    'Open' => 'bg-blue-100 text-blue-800',
+                                    'In Progress' => 'bg-yellow-100 text-yellow-800',
+                                    'Closed' => 'bg-green-100 text-green-800',
+                                    'On Hold' => 'bg-orange-100 text-orange-800',
+                                    'Cancelled' => 'bg-red-100 text-red-800',
                                 ];
                             @endphp
-                            <span class="badge bg-{{ $statusColors[$ticket->status] ?? 'secondary' }} p-2" style="border-radius: 8px;">
-                                {{ $ticket->status }}
+                            {{-- PERBAIKAN: Menggunakan optional($ticket->status)->name sebagai kunci array --}}
+                            <span class="inline-block font-semibold px-3 py-1 rounded-full text-xs {{ $statusColors[$statusName] ?? 'bg-gray-100 text-gray-800' }}">
+                                {{ $statusName }}
                             </span>
                         </div>
                     </div>
                     
                     <!-- Tombol aksi -->
-                    <div class="card-footer bg-transparent d-flex justify-content-end">
-                        <a href="{{ route('tickets.show', $ticket->ID_Ticket) }}" class="btn btn-sm btn-outline-primary me-2">
-                            <i class="fas fa-eye"></i> Detail
+                    <div class="card-footer bg-gray-50 p-3 flex justify-end gap-2">
+                        {{-- PERBAIKAN: Menggunakan rute yang benar --}}
+                        <a href="{{ route('user.tickets.show', $ticket->id) }}" class="px-3 py-1 bg-white border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50">
+                            Detail
                         </a>
-                        @if($ticket->status == 'Diverifikasi' || $ticket->status == 'Diproses')
-                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelTicketModal{{ $ticket->ID_Ticket }}">
-                                <i class="fas fa-times"></i> Batalkan
-                            </button>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Modal untuk pembatalan tiket -->
-                <div class="modal fade" id="cancelTicketModal{{ $ticket->ID_Ticket }}" tabindex="-1" aria-labelledby="cancelTicketModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="cancelTicketModalLabel">Batalkan Tiket</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form action="{{ route('tickets.status', $ticket->ID_Ticket) }}" method="POST">
+                        @if(!in_array(optional($ticket->status)->name, ['Closed', 'Cancelled']))
+                            <form action="{{ route('user.tickets.cancel', $ticket->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan tiket ini?')">
                                 @csrf
-                                <div class="modal-body">
-                                    <p>Apakah Anda yakin ingin membatalkan tiket ini?</p>
-                                    <input type="hidden" name="Status" value="Dibatalkan">
-                                    <div class="mb-3">
-                                        <label for="cancelReason" class="form-label">Alasan Pembatalan</label>
-                                        <textarea class="form-control" id="cancelReason" name="Desc" rows="3" required></textarea>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                    <button type="submit" class="btn btn-danger">Batalkan Tiket</button>
-                                </div>
+                                <input type="hidden" name="Desc" value="Dibatalkan oleh pengguna.">
+                                <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600">
+                                    Batalkan
+                                </button>
                             </form>
-                        </div>
+                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
 
         <!-- Pagination -->
-        <div class="d-flex justify-content-center mt-4">
+        <div class="mt-6">
             {{ $tickets->links() }}
         </div>
     @else
-        <div class="text-center py-5">
-            <img src="{{ asset('images/empty-ticket.png') }}" alt="No tickets" class="img-fluid mb-3" style="max-width: 200px;">
-            <p class="text-muted fs-5">Belum ada tiket yang Anda buat.</p>
-            <a href="{{ route('tickets.create') }}" class="btn btn-primary mt-3">
-                <i class="fas fa-plus-circle"></i> Buat Tiket Baru
+        <div class="text-center py-10">
+            <img src="{{ asset('images/empty-ticket.png') }}" alt="No tickets" class="mx-auto mb-4" style="max-width: 200px;">
+            <p class="text-gray-500 text-lg">Belum ada tiket yang Anda buat.</p>
+            <a href="{{ route('user.tickets.create') }}" class="mt-4 inline-block bg-blue-600 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-700">
+                Buat Tiket Baru
             </a>
         </div>
     @endif

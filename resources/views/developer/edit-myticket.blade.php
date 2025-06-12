@@ -46,14 +46,17 @@
 
             <p class="mt-4 text-sm text-gray-800">{{ $ticket->description }}</p>
 
-            <!-- Status Update -->
-            <form action="{{ route('ticket.updateStatus', $ticket->id) }}" method="POST" class="mt-6">
+             <!-- Status Update -->
+            <form action="{{ route('developer.tickets.update', $ticket->id) }}" method="POST" class="mt-6">
                 @csrf
-                <label for="status" class="block font-medium text-sm text-gray-700 mb-1">Perbarui status tiket<span class="text-red-500">*</span></label>
-                <select name="status" id="status" class="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-blue-300" required>
+                @method('PUT') 
+                <input type="hidden" name="title" value="{{ $ticket->title }}">
+                <label for="status_id" class="block font-medium text-sm text-gray-700 mb-1">Perbarui status tiket<span class="text-red-500">*</span></label>
+                <select name="status_id" id="status_id" class="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-blue-300" required>
                     <option value="">-- Perbarui status tiket ---</option>
-                    <option value="Diproses" @if($ticket->status == 'Diproses') selected @endif>Diproses</option>
-                    <option value="Selesai" @if($ticket->status == 'Selesai') selected @endif>Selesai</option>
+                    @foreach(App\Models\TicketStatus::all() as $status)
+                        <option value="{{ $status->id }}" @if($ticket->status_id == $status->id) selected @endif>{{ $status->name }}</option>
+                    @endforeach
                 </select>
                 <button type="submit" class="mt-4 px-6 py-2 bg-black text-white rounded-full font-semibold hover:bg-gray-800">Simpan Perubahan</button>
             </form>

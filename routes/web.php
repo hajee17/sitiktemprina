@@ -97,12 +97,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Rute untuk Manajemen Akun (CRUD)
         // Menggunakan Route::resource akan secara otomatis membuat rute index, create, store, show, edit, update, destroy
-        Route::resource('akun', DeveloperAccountController::class)->names([
-            'index' => 'kelola-akun',
-            // sesuaikan nama lain jika perlu
-        ]);
+         Route::resource('akun', DeveloperAccountController::class);
         
-        // Rute untuk Manajemen Knowledge Base (CRUD)
+   
         Route::resource('knowledgebase', DeveloperKnowledgeBaseController::class);
 
     });

@@ -46,40 +46,40 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'SBU' => 'required|exists:sbus,id',
-            'Dept' => 'required|exists:departments,id',
-            'Position' => 'required|exists:positions,id',
-            'Judul_Tiket' => 'required|string|max:255',
-            'Category' => 'required|exists:ticket_categories,id',
-            'Location' => 'required|string|max:255',
-            'Desc' => 'required|string',
-            'Attc' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
-        ]);
-        
-        // Buat tiket baru
-        $ticket = Ticket::create([
-            'title' => $request->Judul_Tiket,
-            'description' => $request->Desc,
-            'account_id' => Auth::id(),
-            'status_id' => 1, // Default status 'Open'
-            'category_id' => $request->Category,
-            'priority_id' => 3, // Default priority 'Rendah'
-            'sbu_id' => $request->SBU,
-            'department_id' => $request->Dept,
-            // 'position_id' tidak ada di tabel tickets, mungkin ini seharusnya ada di tabel accounts?
+        $validatedData = $request->validate([
+            'sbu_id' => 'required|exists:sbus,id',
+            'department_id' => 'required|exists:departments,id',
+            'title' => 'required|string|max:255',
+            'category_id' => 'required|exists:ticket_categories,id',
+            'description' => 'required|string',
+            'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048', // Validasi untuk setiap file
         ]);
 
-        // Handle attachment
-        if ($request->hasFile('Attc')) {
-            $path = $request->file('Attc')->store('attachments', 'public');
-            TicketAttachment::create([
-                'ticket_id' => $ticket->id,
-                'path' => $path,
-            ]);
+        // Membuat tiket baru dengan data yang sudah tervalidasi
+        $ticket = Ticket::create([
+            'title' => $validatedData['title'],
+            'description' => $validatedData['description'],
+            'account_id' => Auth::id(),
+            'status_id' => 1, // Default status 'Open'
+            'priority_id' => 3, // Default priority 'Rendah'
+            'sbu_id' => $validatedData['sbu_id'],
+            'department_id' => $validatedData['department_id'],
+            'category_id' => $validatedData['category_id'],
+        ]);
+
+        // Menangani upload file lampiran jika ada
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                // Simpan file ke storage/app/public/attachments
+                $path = $file->store('attachments', 'public');
+                TicketAttachment::create([
+                    'ticket_id' => $ticket->id,
+                    'path' => $path,
+                ]);
+            }
         }
         
-        return redirect()->route('user.tickets.index')->with('success', 'Tiket berhasil dibuat!');
+        return redirect()->route('user.tickets.index')->with('success', 'Tiket Anda berhasil dibuat!');
     }
 
     /**

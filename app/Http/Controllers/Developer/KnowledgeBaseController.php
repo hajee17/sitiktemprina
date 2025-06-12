@@ -7,7 +7,8 @@ use App\Models\KnowledgeBase;
 use App\Models\KnowledgeTag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 class KnowledgeBaseController extends Controller
 {
     /**
@@ -45,27 +46,36 @@ class KnowledgeBaseController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:blog,pdf,video', // Sesuaikan dengan tipe yang ada
+            'type' => 'required|in:blog,pdf,video',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:knowledge_tags,id' // Validasi setiap tag
+            'tags.*' => 'exists:knowledge_tags,id',
+            // Validasi kondisional: 'content' wajib jika tipe adalah blog atau video
+            'content' => 'required_if:type,blog,video|nullable|string',
+            // Validasi kondisional: 'file_path' wajib jika tipe adalah pdf
+            'file_path' => 'required_if:type,pdf|nullable|file|mimes:pdf|max:10240', // Max 10MB
         ]);
 
-        $knowledge = KnowledgeBase::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'type' => $request->type,
-            'account_id' => Auth::id(),
-        ]);
+        $data = $request->only('title', 'type');
+        $data['account_id'] = Auth::id();
+        $data['content'] = $request->content ?? '';
 
-        // Lampirkan tags ke artikel
+        if ($request->type === 'pdf') {
+            if ($request->hasFile('file_path')) {
+                // Simpan file ke storage/app/public/knowledge_files
+                $data['file_path'] = $request->file('file_path')->store('knowledge_files', 'public');
+            }
+        } else {
+            $data['content'] = $request->content;
+        }
+
+        $knowledge = KnowledgeBase::create($data);
+
         if ($request->has('tags')) {
             $knowledge->tags()->sync($request->tags);
         }
 
         return redirect()->route('developer.knowledgebase.index')->with('success', 'Artikel berhasil dibuat.');
     }
-
     /**
      * Menampilkan form untuk mengedit artikel.
      * Perlu view baru, misal: developer/knowledgebase/edit.blade.php
@@ -87,20 +97,38 @@ class KnowledgeBaseController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
             'type' => 'required|in:blog,pdf,video',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:knowledge_tags,id'
+            'content' => 'required_if:type,blog,video|nullable|string',
+            'file_path' => [
+                Rule::requiredIf(fn () => $request->type === 'pdf' && is_null($knowledgebase->file_path)),
+                'nullable', 'file', 'mimes:pdf', 'max:10240',
+            ],
         ]);
 
-        $knowledgebase->update($request->only('title', 'content', 'type'));
+        $dataToUpdate = $request->only('title', 'type');
 
-        // Sync tags, metode sync akan menangani penambahan/penghapusan secara otomatis
+        if ($request->type === 'pdf') {
+            $dataToUpdate['content'] = ''; 
+            if ($request->hasFile('file_path')) {
+                if ($knowledgebase->file_path) {
+                    Storage::disk('public')->delete($knowledgebase->file_path);
+                }
+                $dataToUpdate['file_path'] = $request->file('file_path')->store('knowledge_files', 'public');
+            }
+        } else {
+            $dataToUpdate['content'] = $request->content;
+            if ($knowledgebase->file_path) {
+                Storage::disk('public')->delete($knowledgebase->file_path);
+                $dataToUpdate['file_path'] = null;
+            }
+        }
+
+        $knowledgebase->update($dataToUpdate);
         $knowledgebase->tags()->sync($request->tags ?? []);
 
         return redirect()->route('developer.knowledgebase.index')->with('success', 'Artikel berhasil diperbarui.');
     }
-
     /**
      * Menghapus artikel dari database.
      */

@@ -1,104 +1,99 @@
 @extends('layouts.developer')
 
 @section('content')
-<div class="px-8 py-6 bg-[#F5F6FA] min-h-screen">
-    <h1 class="text-2xl font-semibold mb-6">Ambil Tiket</h1>
+{{-- Menggunakan Alpine.js untuk state management modal --}}
+<div class="px-8 py-6 bg-gray-50 min-h-screen" x-data="{ showModal: false, ticket: null }">
+    <h1 class="text-2xl font-semibold mb-6">Ambil Tiket yang Tersedia</h1>
 
-    {{-- Search dan Filter --}}
-    <form action="{{ route('developer.tickets.index') }}" method="GET" class="flex items-center gap-4 mb-6">
-        <input 
-            type="text" 
-            name="search"
-            placeholder="Cari ID Tiket, Judul, atau Nama Pelapor"
-            class="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
-            value="{{ request('search') }}"
-        >
-        <button type="submit" class="px-5 py-2 border border-black rounded-md font-medium">Cari</button>
+    {{-- Filter dan Search Form --}}
+    <form action="{{ route('developer.tickets.index') }}" method="GET" class="mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input 
+                type="text" 
+                name="search"
+                placeholder="Cari ID atau Judul Tiket"
+                class="w-full px-4 py-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2"
+                value="{{ request('search') }}"
+            >
+            <select name="priority_id" class="w-full px-4 py-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Prioritas</option>
+                @foreach($priorities as $priority)
+                    <option value="{{ $priority->id }}" {{ request('priority_id') == $priority->id ? 'selected' : '' }}>{{ $priority->name }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="w-full bg-black text-white px-5 py-2 rounded-md font-medium hover:bg-gray-800">Cari & Filter</button>
+        </div>
     </form>
 
-    {{-- Filter Kategori --}}
-    <div class="flex flex-wrap gap-3 mb-8">
-        @foreach (['Semua', 'Bug', 'Request', 'Hardware', 'Network', 'Software'] as $kategori)
-            <button 
-                class="px-4 py-2 rounded-full border border-black text-sm hover:bg-black hover:text-white transition
-                    {{ request('category') == $kategori ? 'bg-black text-white' : '' }}"
-                onclick="filterByCategory('{{ $kategori }}')"
-            >
-                {{ $kategori }}
-            </button>
-        @endforeach
-    </div>
-
-    {{-- List Tiket --}}
+    {{-- List Tiket Tersedia --}}
     @if($tickets->isEmpty())
-        <div class="bg-white p-8 rounded-lg text-center">
-            <p class="text-gray-500">Tidak ada tiket yang tersedia</p>
+        <div class="bg-white p-8 rounded-lg text-center shadow-sm">
+            <p class="text-gray-500">Tidak ada tiket yang tersedia saat ini. Kerja bagus!</p>
         </div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach ($tickets as $ticket)
-                <div class="bg-white border-2 border-[#E4E4E4] rounded-xl p-6 flex flex-col justify-between h-[279px]">
-                    {{-- Badge Prioritas --}}
-                    <span class="text-sm font-semibold px-3 py-1 rounded-full w-fit
-                        @if($ticket->priority == 'Tinggi') bg-[#FF3B30] text-white
-                        @elseif($ticket->priority == 'Sedang') bg-[#FF9500] text-white
-                        @elseif($ticket->priority == 'Rendah') bg-[#34C759] text-white
-                        @endif">
-                        {{ $ticket->priority }}
-                    </span>
-
-                    {{-- ID dan Judul Tiket --}}
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6 flex flex-col justify-between hover:shadow-lg hover:border-blue-500 transition-all duration-300">
                     <div>
-                        <p class="text-xs text-gray-500 mt-1">{{ $ticket->ID_Ticket }}</p>
-                        <h3 class="mt-1 font-bold text-lg leading-tight">{{ $ticket->Judul_Tiket }}</h3>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-semibold px-3 py-1 rounded-full w-fit
+                                @if(optional($ticket->priority)->name == 'Tinggi') bg-red-100 text-red-800
+                                @elseif(optional($ticket->priority)->name == 'Sedang') bg-yellow-100 text-yellow-800
+                                @else bg-green-100 text-green-800 @endif">
+                                {{ optional($ticket->priority)->name ?? 'N/A' }}
+                            </span>
+                            <span class="text-xs text-gray-400">{{ $ticket->created_at->diffForHumans() }}</span>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-xs text-gray-500">#{{ $ticket->id }}</p>
+                            <h3 class="mt-1 font-bold text-lg leading-tight">{{ $ticket->title }}</h3>
+                        </div>
                     </div>
-
-                    {{-- Detail --}}
-                    <div class="text-sm text-[#4A4A4A] mt-2 space-y-1">
-                        <p><strong>Kategori:</strong> {{ $ticket->Category }}</p>
-                        <p><strong>Pelapor:</strong> {{ $ticket->account->Name ?? 'N/A' }} ({{ $ticket->Position }})</p>
-                        <p><strong>Lokasi:</strong> {{ $ticket->Location }}</p>
-                        <p><strong>Dibuat:</strong> 
-                            @if($ticket->created_at)
-                                {{ $ticket->created_at->format('d M Y H:i') }}
-                            @else
-                                -
-                            @endif
-                        </p>
-                        <p><strong>Status:</strong> {{ $ticket->status->Status ?? 'Baru' }}</p>
-                    </div>
-
-                    {{-- Tombol --}}
-                    <div class="flex gap-2 mt-4">
-                        <form action="{{ route('tickets.take', $ticket->ID_Ticket) }}" method="POST">
-                            @csrf
-                            <button type="submit" 
-                                    class="bg-black text-white px-4 py-2 rounded-md text-sm hover:opacity-90
-                                           @if($ticket->currentStatus !== 'Baru') opacity-50 cursor-not-allowed @endif"
-                                    @if($ticket->currentStatus !== 'Baru') disabled @endif>
-                                @if($ticket->currentStatus === 'Diproses')
-                                    Sudah Diambil
-                                @else
-                                    Ambil Tiket
-                                @endif
-                            </button>
-                        </form>
-                        <a href="{{ route('tickets.show', $ticket->ID_Ticket) }}" 
-                           class="border border-black text-black px-4 py-2 rounded-md text-sm hover:bg-gray-100">
-                            Lihat Detail
-                        </a>
+                    <div class="mt-4">
+                        <p class="text-sm text-gray-600">Pelapor: <strong>{{ optional($ticket->author)->name ?? 'N/A' }}</strong></p>
+                        <button 
+                            type="button" 
+                            class="w-full mt-4 bg-gray-100 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-200 font-semibold"
+                            @click="ticket = {{ json_encode($ticket) }}; showModal = true">
+                            Lihat Detail Singkat
+                        </button>
                     </div>
                 </div>
             @endforeach
         </div>
+        <div class="mt-6">{{ $tickets->links() }}</div>
     @endif
-</div>
 
-<script>
-    function filterByCategory(category) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('category', category === 'Semua' ? '' : category);
-        window.location.href = url.toString();
-    }
-</script>
+    <!-- Modal untuk Detail Singkat -->
+    <div x-show="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4" @click.away="showModal = false" style="display: none;">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6" @click.stop>
+            <template x-if="ticket">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h2 class="text-xl font-bold" x-text="ticket.title"></h2>
+                            <p class="text-sm text-gray-500" x-text="'#' + ticket.id"></p>
+                        </div>
+                        <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">&times;</button>
+                    </div>
+                    <div class="mt-4 border-t pt-4 text-sm space-y-2">
+                        <p><strong>Pelapor:</strong> <span x-text="ticket.author ? ticket.author.name : 'N/A'"></span></p>
+                        <p><strong>Kategori:</strong> <span x-text="ticket.category ? ticket.category.name : 'N/A'"></span></p>
+                        <p><strong>Prioritas:</strong> <span x-text="ticket.priority ? ticket.priority.name : 'N/A'"></span></p>
+                        <p><strong>Lokasi:</strong> <span x-text="(ticket.department ? ticket.department.name : 'N/A') + ' / ' + (ticket.sbu ? ticket.sbu.name : 'N/A')"></span></p>
+                        <p class="mt-2 bg-gray-50 p-3 rounded-md" x-text="ticket.description"></p>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <form :action="`/developer/tickets/${ticket.id}/take`" method="POST">
+                            @csrf
+                            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700">
+                                Ambil Tiket Ini
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
 @endsection
