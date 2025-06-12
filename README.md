@@ -1,66 +1,182 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+SITIK - Sistem Informasi Ticketing & Knowledge Base
+SITIK adalah aplikasi web helpdesk modern yang dirancang untuk menyederhanakan proses pelaporan masalah, manajemen tiket, dan dokumentasi solusi di dalam sebuah organisasi. Dibangun dengan Laravel dan PostgreSQL, aplikasi ini menyediakan platform yang terpusat dan efisien bagi pengguna untuk meminta bantuan dan bagi tim teknis (developer) untuk menyelesaikan masalah secara efektif.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi ini memisahkan alur kerja antara Pengguna (yang melaporkan masalah) dan Developer (yang menangani masalah), menciptakan sistem yang terorganisir dan mudah dilacak.
 
-## About Laravel
+✨ Fitur Utama
+Untuk Pengguna (Karyawan)
+Dashboard Personal: Melihat ringkasan status tiket yang pernah dibuat.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Pembuatan Tiket Terstruktur: Formulir intuitif untuk melaporkan masalah lengkap dengan pilihan kategori, departemen, dan lampiran bukti.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Pelacakan Tiket Real-time: Pengguna dapat melihat status terkini dari setiap tiket yang mereka ajukan.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Knowledge Base: Akses mandiri ke arsip solusi, panduan, dan FAQ untuk menyelesaikan masalah umum tanpa perlu membuat tiket.
 
-## Learning Laravel
+Notifikasi: Pemberitahuan (jika diimplementasikan) untuk setiap pembaruan status tiket.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Otentikasi Google: Kemudahan login dan registrasi menggunakan akun Google.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Untuk Tim Teknis (Developer/Admin)
+Developer Dashboard: Panel analitik yang menampilkan statistik kunci seperti jumlah tiket masuk, tiket yang sedang dikerjakan, dan tiket selesai. Dilengkapi dengan grafik visual.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Manajemen Tiket Terpusat:
 
-## Laravel Sponsors
+Ambil Tiket: Melihat daftar semua tiket baru yang belum ditangani dan mengambilnya untuk dikerjakan.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Tiket Saya: Mengelola semua tiket yang sedang menjadi tanggung jawabnya.
 
-### Premium Partners
+Kelola Semua Tiket: Panel admin untuk melihat dan mengelola seluruh tiket dalam sistem.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Manajemen Akun: Fitur CRUD (Create, Read, Update, Delete) untuk semua akun pengguna dan developer dalam sistem.
 
-## Contributing
+Manajemen Knowledge Base: Fitur CRUD untuk membuat, mengedit, dan menghapus artikel, panduan, atau video solusi yang akan ditampilkan kepada pengguna.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Sistem Peran (Role-based Access Control): Pemisahan hak akses yang jelas antara user dan developer.
 
-## Code of Conduct
+🚀 Teknologi yang Digunakan
+Proyek ini dibangun menggunakan teknologi modern dan andal:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Teknologi
 
-## Security Vulnerabilities
+Deskripsi
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Laravel 10
 
-## License
+Framework PHP progresif untuk membangun aplikasi web yang elegan dan kokoh.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+PostgreSQL
+
+Sistem database relasional objek yang kuat dan open-source.
+
+Tailwind CSS
+
+Framework CSS utility-first untuk membangun desain kustom dengan cepat.
+
+Alpine.js
+
+Framework JavaScript minimalis untuk menambahkan interaktivitas pada antarmuka.
+
+Vite
+
+Build tool generasi baru yang memberikan pengalaman pengembangan frontend yang sangat cepat.
+
+⚙️ Panduan Instalasi & Setup
+Ikuti langkah-langkah berikut untuk menjalankan proyek ini di lingkungan lokal Anda.
+
+1. Prasyarat
+PHP 8.2 atau lebih tinggi
+
+Composer versi 2.x
+
+Node.js & NPM (atau Yarn)
+
+PostgreSQL Database Server
+
+2. Clone Repositori
+Clone repositori ini ke komputer lokal Anda:
+
+git clone https://github.com/username/nama-proyek-anda.git
+cd nama-proyek-anda
+
+3. Instalasi Dependensi
+Instal semua dependensi PHP dan JavaScript:
+
+# Instal dependensi PHP
+composer install
+
+# Instal dependensi JavaScript
+npm install
+
+4. Konfigurasi Lingkungan
+Salin file .env.example menjadi .env:
+
+cp .env.example .env
+
+Buat kunci aplikasi baru:
+
+php artisan key:generate
+
+Buka file .env dan konfigurasikan koneksi database Anda. Pastikan nama database, user, dan password sudah benar.
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=sitikdb # Ganti dengan nama database Anda
+DB_USERNAME=postgres # Ganti dengan username database Anda
+DB_PASSWORD=password # Ganti dengan password database Anda
+
+(Opsional) Jika Anda ingin menggunakan fitur login Google, tambahkan kredensial Anda:
+
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxxxxxxx
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+5. Setup Database
+Buat database baru di PostgreSQL dengan nama yang sama seperti yang Anda atur di .env.
+
+Opsi A (Rekomendasi - Menggunakan Migrasi): Jalankan semua migrasi untuk membuat struktur tabel dari awal.
+
+php artisan migrate:fresh --seeder
+
+6. Buat Symbolic Link
+Buat symbolic link agar file yang di-upload (seperti lampiran tiket atau PDF knowledge base) dapat diakses dari web.
+
+php artisan storage:link
+
+7. Jalankan Aplikasi
+Kompilasi aset frontend:
+
+npm run dev
+
+Jalankan server pengembangan lokal di terminal lain:
+
+php artisan serve
+
+Aplikasi Anda sekarang akan berjalan di http://localhost:8000.
+
+🔑 Akun Default
+Anda dapat menggunakan akun berikut untuk login dan mencoba aplikasi (jika Anda menggunakan file .sql yang disediakan):
+
+Peran
+
+Email
+
+Password
+
+Developer
+
+dev@example.com
+
+password
+
+User
+
+user@example.com
+
+password
+
+📂 Struktur Proyek
+Berikut adalah gambaran singkat dari direktori-direktori penting:
+
+.
+├── app
+│   ├── Http
+│   │   ├── Controllers   # Berisi semua controller (Auth, User, Developer)
+│   │   └── Middleware    # Berisi middleware kustom (CheckRole)
+│   └── Models            # Berisi semua model Eloquent
+├── database
+│   ├── migrations        # Skema struktur database
+│   └── seeders           # Data awal untuk database
+├── resources
+│   ├── css               # File CSS utama
+│   ├── js                # File JavaScript utama
+│   └── views             # Berisi semua file Blade (tampilan)
+└── routes
+    └── web.php           # Definisi semua rute web aplikasi
+
+🤝 Kontribusi
+Kontribusi sangat kami hargai! Jika Anda ingin berkontribusi, silakan fork repositori ini, buat branch baru untuk fitur Anda, dan kirimkan Pull Request.
+
+📄 Lisensi
+Proyek ini dilisensikan di bawah Lisensi MIT.
