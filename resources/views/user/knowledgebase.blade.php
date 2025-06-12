@@ -1,26 +1,9 @@
 @extends('layouts.master')
 
+@section('title', 'Knowledge Base')
+
 @section('content')
 <div class="min-h-screen bg-white flex flex-col">
-    <!-- Navbar -->
-    <nav class="w-full flex justify-between items-center px-10 py-5 bg-black text-white">
-        <div class="flex gap-1 items-center">
-            <img src="{{ asset('logo.png') }}" alt="Logo" class="h-6"> 
-            <span class="text-xl font-bold">Temprina Sitik</span>
-        </div>
-        <ul class="flex gap-8 text-sm font-semibold">
-            <li><a href="#" class="hover:underline">Kategori</a></li>
-            <li><a href="#" class="hover:underline">Tiket Saya</a></li>
-            <li><a href="#" class="hover:underline">FAQ</a></li>
-            <li><a href="#" class="hover:underline">Knowledge Base</a></li>
-        </ul>
-        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-white text-black font-bold">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.761 0 5.304.839 7.379 2.271M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </div>
-    </nav>
-
     <!-- Header -->
     <div class="text-center mt-12 px-6">
         <h1 class="text-3xl font-bold mb-2">Knowledge Base</h1>
@@ -28,42 +11,55 @@
     </div>
 
     <!-- Search + Filter -->
-    <div class="flex flex-col items-center mt-8 gap-4">
-        <div class="flex gap-2 w-full max-w-2xl">
-            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none" placeholder="Cari pertanyaan atau kata kunci...">
-            <button class="px-6 py-2 bg-black text-white rounded-full">Cari</button>
-            <button class="px-6 py-2 border border-black rounded-full">Filter</button>
-        </div>
+    <div class="flex flex-col items-center mt-8 gap-4 px-6">
+        <form action="{{ route('user.knowledgebase.index') }}" method="GET" class="flex gap-2 w-full max-w-2xl">
+            <input type="text" name="search" value="{{ request('search') }}" class="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none" placeholder="Cari berdasarkan judul...">
+            <button type="submit" class="px-6 py-2 bg-black text-white rounded-full font-semibold">Cari</button>
+        </form>
         
-        <!-- Kategori -->
+        <!-- Kategori/Tags -->
         <div class="flex flex-wrap justify-center gap-3">
-            @foreach(['Semua', 'Mesin', 'Jaringan', 'Perangkat Lunak', 'Perangkat Keras', 'Data', 'Support Teknis', 'Lainnya'] as $kategori)
-                <button class="px-4 py-1 rounded-full border border-gray-400 text-sm font-semibold hover:bg-black hover:text-white">{{ $kategori }}</button>
+            <a href="{{ route('user.knowledgebase.index') }}" class="px-4 py-1 rounded-full border {{ !request('tag') ? 'bg-black text-white border-black' : 'border-gray-400' }} text-sm font-semibold hover:bg-black hover:text-white">Semua</a>
+            @foreach($tags as $tag)
+                <a href="{{ route('user.knowledgebase.index', ['tag' => $tag->name]) }}" class="px-4 py-1 rounded-full border {{ request('tag') == $tag->name ? 'bg-black text-white border-black' : 'border-gray-400' }} text-sm font-semibold hover:bg-black hover:text-white">{{ $tag->name }}</a>
             @endforeach
         </div>
     </div>
 
     <!-- Artikel -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10 px-10 mb-16">
-        @foreach($knowledgeBases as $kb)
-        <div class="bg-[#F8F8F8] p-5 rounded-xl border border-gray-200 flex gap-3">
-            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 px-10 mb-16">
+        @forelse($knowledgeBases as $kb)
+        <a href="{{ route('user.knowledgebase.show', $kb->id) }}" class="block bg-[#F8F8F8] p-5 rounded-xl border border-gray-200 hover:shadow-lg hover:border-blue-500 transition-all">
+            <div class="flex gap-4 items-start">
+                <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 flex-shrink-0">
+                    {{-- Icon dinamis berdasarkan tipe konten --}}
+                    @if($kb->type == 'pdf')
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0011.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    @elseif($kb->type == 'video')
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    @else
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    @endif
+                </div>
+                <div>
+                    {{-- Menggunakan properti dari model yang benar --}}
+                    <p class="font-semibold text-sm text-black">{{ $kb->title }}</p>
+                    <p class="text-xs text-gray-600 mt-1">{{ optional($kb->tags->first())->name ?? 'Umum' }}</p>
+                    <p class="text-xs text-gray-500">{{ optional($kb->author)->name ?? 'Admin' }} · {{ $kb->created_at->format('d M Y') }}</p>
+                </div>
             </div>
-            <div>
-                <p class="font-semibold text-sm text-black">{{ $kb->judul }}</p>
-                <p class="text-xs text-gray-600 mt-1">{{ $kb->kategori }} · {{ $kb->kode_tiket }}</p>
-                <p class="text-xs text-gray-500">{{ $kb->author }} · {{ \Carbon\Carbon::parse($kb->tanggal)->format('d M Y') }}</p>
-            </div>
+        </a>
+        @empty
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-500">Tidak ada artikel yang cocok dengan pencarian Anda.</p>
         </div>
-        @endforeach
+        @endforelse
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-black text-white text-center py-6 text-sm">
-        ©2025 All Rights Reserved by <a href="#" class="underline">PT. Temprina Media Grafika</a>
-    </footer>
+    <!-- Pagination -->
+    <div class="px-10 mb-16">
+        {{ $knowledgeBases->withQueryString()->links() }}
+    </div>
+
 </div>
 @endsection

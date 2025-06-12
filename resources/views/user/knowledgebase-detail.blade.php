@@ -1,7 +1,13 @@
 @php
 function getYoutubeEmbedUrl($url) {
-    preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
-    return $match[1] ?? null ? 'https://www.youtube.com/embed/' . $match[1] : null;
+    if (strpos($url, 'youtu.be/') !== false) {
+        preg_match('%youtu.be/([^"&?/ ]{11})%i', $url, $match);
+        return $match[1] ?? null ? 'https://www.youtube.com/embed/' . $match[1] : null;
+    } elseif (strpos($url, 'youtube.com/watch') !== false) {
+        preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=))([^"&?/ ]{11})%i', $url, $match);
+        return $match[1] ?? null ? 'https://www.youtube.com/embed/' . $match[1] : null;
+    }
+    return null; // Return null jika bukan URL YouTube
 }
 @endphp
 
@@ -25,18 +31,20 @@ function getYoutubeEmbedUrl($url) {
         <!-- Konten Dinamis -->
         <div class="bg-white shadow-lg rounded-lg p-6 md:p-8">
             @if($knowledge->type === 'blog')
-                <div class="prose max-w-none">
-                    {!! nl2br(e($knowledge->content)) !!} {{-- Menggunakan e() untuk keamanan dan nl2br untuk baris baru --}}
+                <div class="prose max-w-none text-gray-700 leading-relaxed">
+                    {{-- Menggunakan e() untuk keamanan dan nl2br untuk baris baru --}}
+                    {!! nl2br(e($knowledge->content)) !!} 
                 </div>
 
             @elseif($knowledge->type === 'pdf' && $knowledge->file_path)
                 <div class="bg-gray-100 p-4 rounded-lg text-center">
-                    <p class="font-semibold mb-2">Dokumen PDF</p>
+                    <p class="font-semibold mb-2">Dokumen PDF tidak dapat ditampilkan langsung.</p>
                     <a href="{{ asset('storage/' . $knowledge->file_path) }}" target="_blank" class="inline-block bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700">
                         Buka/Unduh PDF
                     </a>
                 </div>
-                <iframe src="{{ asset('storage/' . $knowledge->file_path) }}" class="w-full h-[800px] mt-4 border rounded-md" frameborder="0"></iframe>
+                {{-- Opsi untuk embed, namun link download lebih universal --}}
+                {{-- <iframe src="{{ asset('storage/' . $knowledge->file_path) }}" class="w-full h-[800px] mt-4 border rounded-md" frameborder="0"></iframe> --}}
 
             @elseif($knowledge->type === 'video' && $knowledge->content)
                 @php $embedUrl = getYoutubeEmbedUrl($knowledge->content); @endphp
@@ -52,7 +60,6 @@ function getYoutubeEmbedUrl($url) {
                 <p class="text-red-500">Tipe konten tidak didukung atau konten tidak ditemukan.</p>
             @endif
         </div>
-        
     </div>
 </div>
 @endsection

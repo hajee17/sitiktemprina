@@ -8,11 +8,9 @@
         <!-- Header Profil -->
         <div style="position: relative; width: 100%; text-align: center;">
             <div style="width: 100%; height: 120px; background: url('{{ asset('images/banner.png') }}') no-repeat center center; background-size: cover; border-radius: 12px;"></div>
-            <img src="{{ asset('images/profile.png') }}" alt="Foto Profil" 
+            {{-- Avatar dinamis --}}
+            <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&size=100&background=EBF4FF&color=007BFF" alt="Foto Profil" 
                 style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid white; position: relative; top: -50px;">
-            <button style="position: relative; top: -90px; left: 40px; background: white; border-radius: 50%; padding: 5px; border: none;">
-                <img src="{{ asset('images/camera-icon.png') }}" width="24">
-            </button>
         </div>
 
         <!-- Form Data User -->
@@ -20,29 +18,32 @@
 
             <div style="text-align: left;">
                 <label style="font-weight: bold;">Nama Lengkap</label>
-                <input type="text" value="Hafidz Irham Ar Ridlo" disabled 
+                {{-- Data Dinamis --}}
+                <input type="text" value="{{ Auth::user()->name }}" disabled 
                     style="width: 100%; padding: 10px; border: 1px solid #E4E4E4; border-radius: 8px; background: #F9F9F9;">
             </div>
 
             <div style="text-align: left;">
                 <label style="font-weight: bold;">Email</label>
-                <input type="email" value="iniemail@gmail.com" disabled 
+                {{-- Data Dinamis --}}
+                <input type="email" value="{{ Auth::user()->email }}" disabled 
                     style="width: 100%; padding: 10px; border: 1px solid #E4E4E4; border-radius: 8px; background: #F9F9F9;">
             </div>
 
             <div style="text-align: left;">
                 <label style="font-weight: bold;">Nomor Telepon</label>
-                <input type="text" value="081234567890" disabled 
+                {{-- Data Dinamis --}}
+                <input type="text" value="{{ Auth::user()->phone ?? 'Belum diisi' }}" disabled 
                     style="width: 100%; padding: 10px; border: 1px solid #E4E4E4; border-radius: 8px; background: #F9F9F9;">
             </div>
 
-            <!-- Ubah Kata Sandi -->
+            {{-- @todo: Buat halaman/modal untuk fungsionalitas ini --}}
             <button style="width: 100%; display: flex; justify-content: space-between; align-items: center; background: #FFF; border: 1px solid #E4E4E4; padding: 10px; border-radius: 8px; cursor: pointer;">
                 <span>🔑 Ubah Kata Sandi</span>
                 <span>➡</span>
             </button>
 
-            <!-- Hapus Akun -->
+            {{-- @todo: Buat fungsionalitas hapus akun di controller --}}
             <button style="width: 100%; padding: 12px; border: 2px solid red; color: red; background: transparent; border-radius: 8px; font-weight: bold; cursor: pointer;"
                 onmouseover="this.style.background='red'; this.style.color='white';"
                 onmouseout="this.style.background='transparent'; this.style.color='red';">
@@ -50,8 +51,6 @@
             </button>
 
         </div>
-
     </div>
-
 </div>
 @endsection
