@@ -14,8 +14,8 @@
                     ['name' => 'Dashboard', 'icon' => '🏠', 'route' => 'developer.dashboard'],
                     ['name' => 'Ambil Tiket', 'icon' => '🎟️', 'route' => 'developer.tickets.index'],
                     ['name' => 'Tiket Saya', 'icon' => '📄', 'route' => 'developer.myticket'],
-                    // PERBAIKAN DI SINI: Menambahkan .index pada nama rute
                     ['name' => 'Knowledge Base', 'icon' => '📚', 'route' => 'developer.knowledgebase.index'],
+                    ['name' => 'Kelola Tags', 'icon' => '🏷️', 'route' => 'developer.tags.index'],
                 ];
             @endphp
 

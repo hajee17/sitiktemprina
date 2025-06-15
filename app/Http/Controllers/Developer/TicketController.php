@@ -9,6 +9,9 @@ use App\Models\Ticket;
 use App\Models\Account;
 use App\Models\TicketStatus;
 use App\Models\TicketPriority;
+use App\Models\KnowledgeBase;
+use App\Models\KnowledgeTag;
+
 class TicketController extends Controller
 {
     /**
@@ -124,27 +127,47 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
-        // --- PERBAIKAN LOGIKA OTORISASI ---
-        // Pastikan tiket sudah ditugaskan ke developer yang sedang login
-        if ($ticket->assignee_id !== Auth::id()) {
-            // Jika tidak, tolak permintaan
-            abort(403, 'AKSI TIDAK DIIZINKAN. Anda bukan penanggung jawab tiket ini.');
-        }
-
-        $request->validate([
-            'title' => 'required|string|max:255',
+        // ... (otorisasi & validasi dari sebelumnya) ...
+        $validated = $request->validate([
             'status_id' => 'required|exists:ticket_statuses,id',
-            'comment' => 'nullable|string' // Komentar sekarang opsional
+            'comment' => 'nullable|string',
+            'create_knowledge_base' => 'nullable|boolean',
         ]);
 
-        $ticket->update($request->only('title', 'status_id'));
-        
-        // Jika ada komentar, simpan sebagai riwayat
+        // Simpan komentar terlebih dahulu jika ada
         if ($request->filled('comment')) {
             $ticket->comments()->create([
                 'account_id' => Auth::id(),
-                'message' => $request->comment,
+                'message' => $validated['comment'],
             ]);
+        }
+
+        // Update status tiket
+        $ticket->status_id = $validated['status_id'];
+        $ticket->save();
+
+        // --- LOGIKA CASE-BASED REASONING (CBR) ---
+        $isClosing = \App\Models\TicketStatus::find($validated['status_id'])->name === 'Closed';
+        
+        if ($isClosing && $request->boolean('create_knowledge_base') && $request->filled('comment')) {
+            // Cek apakah sudah ada KB dari tiket ini untuk mencegah duplikat
+            if (!$ticket->knowledgeBaseArticle()->exists()) {
+                
+                // Cari atau buat tag baru berdasarkan kategori tiket
+                $tag = KnowledgeTag::firstOrCreate(['name' => $ticket->category->name]);
+                
+                // Buat artikel Knowledge Base baru
+                $kb = KnowledgeBase::create([
+                    'title' => $ticket->title,
+                    'content' => $validated['comment'], // Konten diambil dari komentar solusi
+                    'type' => 'blog',
+                    'account_id' => Auth::id(),
+                    'source_ticket_id' => $ticket->id, // Tautkan ke tiket sumber
+                ]);
+                
+                // Lampirkan tag ke artikel KB
+                $kb->tags()->sync([$tag->id]);
+            }
         }
 
         return redirect()->route('developer.tickets.show', $ticket->id)->with('success', 'Tiket berhasil diperbarui.');

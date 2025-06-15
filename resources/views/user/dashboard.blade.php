@@ -5,8 +5,8 @@
 @section('content')
 
 <!-- Hero Section -->
-<div class="w-full px-4 md:px-12 pt-0 pb-8">
-    <div class="bg-cover bg-center bg-no-repeat rounded-xl p-8 md:p-12"
+<div class="w-full px-4 md:px-12 pt-5 pb-5">
+    <div class="bg-cover bg-center bg-no-repeat rounded-x2 p-8 md:p-12"
          style="background-image: url('{{ asset('images/frame21.png') }}');">
         {{-- Menampilkan nama user yang login --}}
         <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Selamat Datang di SITIK, {{ Auth::user()->name }}!</h2>

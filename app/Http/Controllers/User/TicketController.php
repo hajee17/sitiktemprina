@@ -11,6 +11,8 @@ use App\Models\Position;
 use App\Models\TicketCategory;
 use App\Models\Sbu;
 use App\Models\TicketAttachment;
+use App\Services\PriorityPredictionService;
+use App\Services\KnowledgeBaseRecommenderService;
 
 class TicketController extends Controller
 {
@@ -44,7 +46,7 @@ class TicketController extends Controller
     /**
      * Menyimpan tiket baru ke database.
      */
-    public function store(Request $request)
+    public function store(Request $request, PriorityPredictionService $priorityService)
     {
         $validatedData = $request->validate([
             'sbu_id' => 'required|exists:sbus,id',
@@ -52,19 +54,21 @@ class TicketController extends Controller
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:ticket_categories,id',
             'description' => 'required|string',
-            'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048', // Validasi untuk setiap file
+            'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
         ]);
+        
+        // PERBAIKAN: Tentukan prioritas menggunakan service
+        $predictedPriorityId = $priorityService->predict($request);
 
-        // Membuat tiket baru dengan data yang sudah tervalidasi
         $ticket = Ticket::create([
             'title' => $validatedData['title'],
             'description' => $validatedData['description'],
             'account_id' => Auth::id(),
-            'status_id' => 1, // Default status 'Open'
-            'priority_id' => 3, // Default priority 'Rendah'
+            'status_id' => 1,
             'sbu_id' => $validatedData['sbu_id'],
             'department_id' => $validatedData['department_id'],
             'category_id' => $validatedData['category_id'],
+            'priority_id' => $predictedPriorityId, // <-- Menggunakan hasil prediksi
         ]);
 
         // Menangani upload file lampiran jika ada
@@ -85,14 +89,22 @@ class TicketController extends Controller
     /**
      * Menampilkan detail tiket. (LacakTicket.blade.php)
      */
-    public function show(Ticket $ticket)
+    public function show(Ticket $ticket, KnowledgeBaseRecommenderService $recommender)
     {
-        // Pastikan user hanya bisa melihat tiketnya sendiri
-        if ($ticket->account_id !== Auth::id()) {
-            abort(403);
+        if ($ticket->account_id !== Auth::id() && !Auth::user()->isDeveloper()) {
+            abort(403, 'Akses Ditolak');
         }
-        return view('user.LacakTicket', compact('ticket'));
+        
+        // Memuat relasi yang diperlukan untuk tiket
+        $ticket->load('status', 'category', 'priority', 'attachments', 'author', 'comments.author');
+        
+        // MEMANGGIL MODEL: Dapatkan rekomendasi artikel
+        $recommendations = $recommender->getRecommendations($ticket);
+        
+        // Kirim data tiket dan rekomendasi ke view
+        return view('user.LacakTicket', compact('ticket', 'recommendations'));
     }
+
 
     /**
      * Membatalkan tiket.

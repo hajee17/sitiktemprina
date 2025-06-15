@@ -10,7 +10,7 @@ class KnowledgeBase extends Model
     use HasFactory;
 
     // PERBAIKAN: Menambahkan 'file_path'
-    protected $fillable = ['title', 'content', 'account_id', 'type', 'file_path'];
+    protected $fillable = ['title', 'content', 'account_id', 'type', 'file_path', 'source_ticket_id'];
 
     public function author()
     {
@@ -20,5 +20,10 @@ class KnowledgeBase extends Model
     public function tags()
     {
         return $this->belongsToMany(KnowledgeTag::class, 'knowledge_base_knowledge_tag');
+    }
+
+    public function sourceTicket()
+    {
+        return $this->belongsTo(Ticket::class, 'source_ticket_id');
     }
 }

@@ -69,4 +69,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(Account::class, 'assignee_id');
     }
+
+    public function knowledgeBaseArticle()
+    {
+        return $this->hasOne(KnowledgeBase::class, 'source_ticket_id');
+    }
 }

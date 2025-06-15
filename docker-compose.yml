@@ -1,0 +1,42 @@
+# docker-compose.yml
+
+
+services:
+  # Layanan Aplikasi Laravel dengan FrankenPHP
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"       # Port HTTP
+      - "443:443"     # Port HTTPS
+      - "443:443/udp" # Port untuk HTTP/3
+    volumes:
+      - .:/app # Sinkronisasi file lokal dengan container
+    depends_on:
+      - db
+    environment:
+      # Arahkan koneksi ke layanan database 'db'
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE:-sitikdb}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      # URL Server untuk HTTPS otomatis dari Caddy/FrankenPHP
+      SERVER_NAME: "localhost" 
+
+  # Layanan Database PostgreSQL
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-sitikdb}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  db_data:

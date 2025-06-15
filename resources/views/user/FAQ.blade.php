@@ -1,5 +1,7 @@
 @extends('layouts.master')
 
+@section('title', 'FAQ - Pertanyaan yang Sering Diajukan')
+
 @section('content')
 <div class="bg-gray-100 min-h-screen p-6">
     <!-- Header -->
@@ -10,53 +12,31 @@
 
     <!-- Search Bar -->
     <div class="flex justify-center mt-4">
-        <input type="text" class="border border-gray-400 rounded-lg px-4 py-2 w-96" placeholder="Cari pertanyaan atau kata kunci...">
-        <button class="bg-black text-white px-6 py-2 ml-2 rounded-lg">Cari</button>
+        <form action="{{ route('user.faq') }}" method="GET" class="flex w-full max-w-xl">
+            <input type="text" name="search" value="{{ request('search') }}" class="border border-gray-400 rounded-l-lg px-4 py-2 w-full" placeholder="Cari pertanyaan atau kata kunci...">
+            <button type="submit" class="bg-black text-white px-6 py-2 rounded-r-lg">Cari</button>
+        </form>
     </div>
 
-    <!-- FAQ Categories -->
-    <div class="grid grid-cols-3 gap-6 mt-8 mx-auto max-w-6xl">
-        @php
-            $categories = [
-                ['name' => 'Mesin', 'count' => 3],
-                ['name' => 'Perangkat Lunak', 'count' => 5],
-                ['name' => 'Perangkat Keras', 'count' => 11],
-                ['name' => 'Jaringan', 'count' => 12],
-                ['name' => 'Data', 'count' => 7],
-                ['name' => 'Support Teknis', 'count' => 4],
-            ];
-        @endphp
-
-        @foreach($categories as $category)
-        <div class="border border-gray-300 rounded-lg shadow-lg bg-white">
-            <!-- Header -->
-            <div class="bg-blue-500 text-white font-bold text-lg px-4 py-3 flex justify-between">
-                <span>{{ $category['name'] }}</span>
-                <span>{{ $category['count'] }}</span>
-            </div>
-
-            <!-- Content -->
-            <div class="p-4">
-                <div class="flex justify-between text-sm text-gray-700 mb-2">
-                    <span class="font-bold">Rekomendasi</span>
-                    <span>Terbaru</span>
-                </div>
-
-                <ul class="text-sm text-gray-600 space-y-1">
-                    <li>• Lorem ipsum morbi et enim</li>
-                    <li>• Lorem ipsum dolor sit amet</li>
-                    <li>• Vestibulum varius nisi sed magna</li>
-                </ul>
-
-                <!-- Button -->
-                <div class="mt-4">
-                    <a href="#" class="block text-center border border-blue-500 text-blue-500 py-2 rounded-lg font-semibold">Lihat Semua</a>
+    <!-- FAQ List (Accordion) -->
+    <div class="max-w-4xl mx-auto mt-8 space-y-4">
+        @forelse($faqs as $faq)
+            <div x-data="{ open: false }" class="bg-white rounded-lg shadow-sm border">
+                <h2>
+                    <button type="button" @click="open = !open" class="flex items-center justify-between w-full p-5 font-medium text-left text-gray-700">
+                        <span>{{ $faq->title }}</span>
+                        <svg :class="{'rotate-180': open, 'rotate-0': !open}" class="w-6 h-6 shrink-0 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </h2>
+                <div x-show="open" class="p-5 border-t prose max-w-none text-gray-600">
+                    {!! nl2br(e($faq->content)) !!}
                 </div>
             </div>
-        </div>
-        @endforeach
+        @empty
+            <div class="text-center p-8 bg-white rounded-lg shadow-sm">
+                <p class="text-gray-500">Tidak ada FAQ yang cocok dengan pencarian Anda.</p>
+            </div>
+        @endforelse
     </div>
-
-   
 </div>
 @endsection

@@ -2,16 +2,18 @@
 
 use Illuminate\Support\Facades\Route;
 
-// --- Import Semua Controller ---
+
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\User\DashboardController as UserDashboardController;
 use App\Http\Controllers\User\TicketController as UserTicketController;
 use App\Http\Controllers\User\KnowledgeBaseController as UserKnowledgeBaseController;
-use App\Http\Controllers\User\PageController as UserPageController; // Untuk halaman statis seperti FAQ & Akun Saya
+use App\Http\Controllers\User\PageController as UserPageController; 
 use App\Http\Controllers\Developer\DashboardController as DeveloperDashboardController;
 use App\Http\Controllers\Developer\TicketController as DeveloperTicketController;
 use App\Http\Controllers\Developer\AccountController as DeveloperAccountController;
 use App\Http\Controllers\Developer\KnowledgeBaseController as DeveloperKnowledgeBaseController;
+use App\Http\Controllers\TicketCommentController;
+use App\Http\Controllers\Developer\TagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/tickets', [UserTicketController::class, 'store'])->name('tickets.store');
         Route::get('/tickets/{ticket}', [UserTicketController::class, 'show'])->name('tickets.show'); // LacakTicket.blade.php
         Route::post('/tickets/{ticket}/cancel', [UserTicketController::class, 'cancel'])->name('tickets.cancel');
-
+        Route::post('/tickets/{ticket}/comments', [TicketCommentController::class, 'store'])->name('comments.store');
         // Rute untuk Knowledge Base
         Route::get('/knowledgebase', [UserKnowledgeBaseController::class, 'index'])->name('knowledgebase.index');
         Route::get('/knowledgebase/{knowledgeBase}', [UserKnowledgeBaseController::class, 'show'])->name('knowledgebase.show');
@@ -94,12 +96,12 @@ Route::middleware(['auth'])->group(function () {
             // Jika ada detail view spesifik untuk developer, tambahkan di sini.
             Route::get('/tickets/{ticket}/detail', 'show')->name('tickets.show'); 
         });
-
+        Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
         // Rute untuk Manajemen Akun (CRUD)
         // Menggunakan Route::resource akan secara otomatis membuat rute index, create, store, show, edit, update, destroy
-         Route::resource('akun', DeveloperAccountController::class);
+        Route::resource('akun', DeveloperAccountController::class);
         
-   
+        Route::post('/tickets/{ticket}/comments', [TicketCommentController::class, 'store'])->name('comments.store');
         Route::resource('knowledgebase', DeveloperKnowledgeBaseController::class);
 
     });

@@ -18,10 +18,23 @@ class PageController extends Controller
     }
 
     // Untuk halaman FAQ.blade.php
-    public function faq()
+    public function faq(Request $request)
     {
-        // Logika untuk mengambil data FAQ jika dinamis
-        return view('user.FAQ');
+        $query = KnowledgeBase::where('type', 'blog')
+                    ->whereHas('tags', function ($q) {
+                        // Mengasumsikan Anda memiliki tag bernama 'FAQ'
+                        $q->where('name', 'FAQ');
+                    });
+
+        // Menambahkan fungsionalitas pencarian
+        if ($request->filled('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('content', 'like', '%' . $request->search . '%');
+        }
+
+        $faqs = $query->latest()->get();
+        
+        return view('user.FAQ', compact('faqs'));
     }
 
     // Untuk halaman knowledgebase.blade.php
@@ -36,4 +49,6 @@ class PageController extends Controller
     {
         return view('user.knowledgebase-detail', compact('knowledge'));
     }
+
+    
 }
