@@ -1,6 +1,5 @@
 # docker-compose.yml
 
-
 services:
   # Layanan Aplikasi Laravel dengan FrankenPHP
   app:
@@ -13,7 +12,7 @@ services:
       - "443:443"     # Port HTTPS
       - "443:443/udp" # Port untuk HTTP/3
     volumes:
-      - .:/app # Sinkronisasi file lokal dengan container
+      - .:/app
     depends_on:
       - db
     environment:
@@ -22,8 +21,22 @@ services:
       DB_DATABASE: ${DB_DATABASE:-sitikdb}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-password}
+      # Beritahu Laravel untuk menemukan Vite di layanan 'vite'
+      VITE_SERVER_HOST: vite
       # URL Server untuk HTTPS otomatis dari Caddy/FrankenPHP
-      SERVER_NAME: "localhost" 
+      SERVER_NAME: "localhost"
+
+  # --- LAYANAN BARU UNTUK VITE DEV SERVER ---
+  vite:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      # Buka port Vite agar bisa diakses dari browser
+      - "5173:5173"
+    # Perintah untuk menginstal dependensi dan menjalankan server dev
+    command: sh -c "npm install && npm run dev -- --host"
 
   # Layanan Database PostgreSQL
   db:

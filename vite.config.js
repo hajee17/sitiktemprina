@@ -10,4 +10,12 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+
+  server: {
+        host: '0.0.0.0', // Terima koneksi dari mana saja di dalam jaringan Docker
+        port: 5173,
+        hmr: {
+            host: 'localhost', // Browser akan terhubung ke sini untuk Hot Reload
+        },
+    },
 })
