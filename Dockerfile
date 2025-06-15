@@ -1,30 +1,37 @@
 # Dockerfile
 
-# Gunakan base image resmi FrankenPHP untuk Laravel
-FROM dunglas/frankenphp:php8.2-alpine   
+# Menggunakan tag base yang paling up-to-date dan stabil untuk PHP 8.2
+FROM dunglas/frankenphp:php8.2-alpine
 
-# (Opsional) Instal ekstensi PHP tambahan jika diperlukan
-RUN install-php-extensions pgsql pdo_pgsql intl zip
-# Baris di atas sudah mencakup pgsql yang Anda butuhkan. Hapus komentar jika perlu ekstensi lain.
+# Mengatur direktori kerja di dalam container
+WORKDIR /app
 
-# Atur variabel lingkungan untuk mode produksi
-ENV APP_ENV=local
-ENV FRANKENPHP_CONFIG="worker /app/public/index.php"
+# Menginstal dependensi sistem dan ekstensi PHP yang diperlukan
+RUN install-php-extensions \
+    opcache \
+    gd \
+    intl \
+    pdo_pgsql \
+    pgsql \
+    zip
 
-# Salin composer.json dan composer.lock terlebih dahulu untuk caching dependensi
+# Salin Composer binary dari image resmi Composer ke dalam image kita
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Salin composer.json dan composer.lock terlebih dahulu untuk caching
 COPY --chown=frankenphp:frankenphp composer.json composer.lock ./
 
-# Instal dependensi composer
+# Sekarang perintah ini akan berhasil karena 'composer' sudah ada
 RUN composer install --no-dev --no-interaction --no-scripts --no-progress
 
 # Salin sisa file aplikasi
 COPY --chown=frankenphp:frankenphp . .
 
-# Jalankan perintah post-install composer
+# Jalankan perintah optimasi Laravel
 RUN composer dump-autoload --no-interaction --no-dev --classmap-authoritative && \
     php artisan package:discover --ansi && \
     php artisan storage:link && \
     php artisan optimize
 
-# Set header keamanan
-LABEL org.opencontainers.image.source="https://github.com/Dunglas/frankenphp"
+# Set header keamanan (opsional)
+LABEL org.opencontainers.image.source="https://github.com/dunglas/frankenphp"
