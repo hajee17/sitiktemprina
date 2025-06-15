@@ -9,7 +9,6 @@ use App\Models\Account;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule; 
-
 class AccountController extends Controller
 {
     /**
@@ -46,7 +45,6 @@ class AccountController extends Controller
             'Name' => 'required|string|max:255',
             'Email' => 'required|email|unique:accounts,email',
             'Telp_Num' => 'nullable|string',
-            'password' => ['required', 'string', 'min:8', 'confirmed'], // Validasi password
             'ID_Role' => 'required|exists:roles,id',
         ]);
         
@@ -55,8 +53,8 @@ class AccountController extends Controller
             'username' => strtolower(explode('@', $request->Email)[0] . rand(10, 99)), // Membuat username dari email
             'email' => $request->Email,
             'phone' => $request->Telp_Num,
-            'password' => Hash::make($request->password), // Gunakan password yang diinput
             'role_id' => $request->ID_Role,
+            'password' => Hash::make('password'), // Memberi password default
         ]);
 
         return back()->with('success', 'User baru berhasil ditambahkan.');
@@ -67,17 +65,12 @@ class AccountController extends Controller
      */
     public function update(Request $request, Account $account)
     {
-        // Bersihkan input email dari spasi atau casing yang tidak diinginkan
-        $request->merge([
-            'Email' => strtolower(trim($request->input('Email')))
-        ]);
-
         $data = $request->validate([
             'Name' => 'required|string|max:255',
             'Email' => [
                 'required',
                 'email',
-                Rule::unique('accounts', 'email')->ignore($account->id), // Memperbaiki validasi unique
+                Rule::unique('accounts', 'email')->ignore($account->id),
             ],
             'Telp_Num' => 'nullable|string',
             'ID_Role' => 'required|exists:roles,id',
