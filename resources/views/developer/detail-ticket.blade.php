@@ -92,7 +92,7 @@
                     </form>
                     <hr class="my-6">
                      <!-- Form untuk menambah komentar/gambar saja -->
-                    <form action="{{ route('comments.store', $ticket->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('developer.comments.store', $ticket->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <label for="comment_file" class="block text-sm font-medium text-gray-700">Tambah Lampiran di Komentar</label>
                          <input type="file" name="comment_file" id="comment_file" class="mt-1 block w-full text-sm">

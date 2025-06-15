@@ -5,48 +5,70 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Developer Dashboard')</title>
     @vite('resources/css/app.css')
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="bg-[#F5F6FA]" x-data="{ open: true }">
+<body class="bg-[#F5F6FA]" x-data=""> {{-- x-data kosong karena state diatur di Alpine.store --}}
 
-    <!-- Sidebar -->
+    {{-- Logika untuk mengatur 'open' dan 'isMobile' di Alpine.js Store --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('global', {
+                open: window.innerWidth >= 1024, // Sidebar terbuka secara default di desktop
+                isMobile: window.innerWidth < 1024
+            });
+
+            // Update state saat window di-resize
+            window.addEventListener('resize', () => {
+                Alpine.store('global').isMobile = window.innerWidth < 1024;
+                if (!Alpine.store('global').isMobile) {
+                    Alpine.store('global').open = true; // Sidebar terbuka di desktop
+                } else {
+                    Alpine.store('global').open = false; // Sidebar tertutup di mobile
+                }
+            });
+        });
+    </script>
+
     <div class="fixed top-0 left-0 h-full bg-white shadow-lg z-40 transition-all duration-300 ease-in-out"
-         :class="open ? 'w-64' : 'w-20'">
-         
-        <!-- Tombol Toggle Sidebar -->
-        <button @click="open = !open" 
-                class="absolute -right-3 top-6 bg-white rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-100 z-10">
+         :class="{ 'w-64': $store.global.open, 'w-0 lg:w-20': !$store.global.open }"
+         x-show="$store.global.open || !$store.global.isMobile">
+
+        {{-- Tombol Toggle Sidebar (hanya di desktop, disembunyikan di mobile) --}}
+        <button @click="$store.global.open = !$store.global.open"
+                class="absolute -right-3 top-6 bg-white rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-100 z-10 hidden lg:block">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      :d="open ? 'M15 19l-7-7-7-7' : 'M9 5l7 7-7 7'" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      :d="$store.global.open ? 'M15 19l-7-7-7-7' : 'M9 5l7 7-7 7'" />
             </svg>
         </button>
 
         @include('components.sidebar')
     </div>
 
-    <!-- Overlay untuk mobile saat sidebar terbuka -->
-    <div x-show="open" class="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden" @click="open = false"></div>
+    <div x-show="$store.global.open && $store.global.isMobile" class="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden" @click="$store.global.open = false"></div>
 
-    <!-- Konten Utama dan Navbar -->
-    <div :class="open ? 'lg:ml-64' : 'lg:ml-20'" class="transition-all duration-300">
-        <!-- Navbar -->
-        <nav class="h-16 bg-white shadow flex items-center justify-end px-6">
-            {{-- PERBAIKAN: Menambahkan dropdown profil --}}
-            <div x-data="{ dropdownOpen: false }" class="relative">
+    <div :class="{ 'lg:ml-64': $store.global.open, 'lg:ml-20': !$store.global.open, 'ml-0': $store.global.isMobile }" class="transition-all duration-300">
+        <nav class="h-16 bg-white shadow flex items-center justify-between px-6">
+            {{-- Tombol Hamburger Menu (Hanya di mode HP) --}}
+            <button @click="$store.global.open = !$store.global.open" class="lg:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            {{-- Dropdown profil --}}
+            <div x-data="{ dropdownOpen: false }" class="relative ml-auto">
                 <button @click="dropdownOpen = !dropdownOpen" class="flex items-center space-x-3 focus:outline-none">
                     <div class="text-right hidden md:block">
                         <div class="text-sm font-semibold">{{ Auth::user()->name }}</div>
                         <div class="text-xs text-gray-500 capitalize">{{ optional(Auth::user()->role)->name ?? 'User' }}</div>
                     </div>
                     <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 border">
-                        {{-- Menggunakan UI Avatars untuk gambar profil dinamis --}}
                         <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random&color=fff" alt="User Icon" class="object-cover w-full h-full">
                     </div>
                 </button>
-        
-                <!-- Menu Dropdown -->
-                <div x-show="dropdownOpen" 
+
+                <div x-show="dropdownOpen"
                      @click.away="dropdownOpen = false"
                      class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border"
                      x-transition:enter="transition ease-out duration-100"
@@ -56,14 +78,13 @@
                      x-transition:leave-start="transform opacity-100 scale-100"
                      x-transition:leave-end="transform opacity-0 scale-95"
                      style="display: none;">
-                    
-                    {{-- @todo: Buat rute dan halaman untuk profil developer --}}
+
                     <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                         Profile Saya
                     </a>
-                    
+
                     <div class="border-t border-gray-100"></div>
-        
+
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -74,7 +95,6 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
         <main class="p-6 min-h-[calc(100vh-64px)]">
             @yield('content')
         </main>

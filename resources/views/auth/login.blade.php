@@ -43,11 +43,23 @@
             <!-- Password Input -->
             <div>
                 <label for="password" class="block font-semibold mb-1.5">Kata Sandi</label>
-                <input type="password" id="password" name="password" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded focus:border-black focus:outline-none @error('password') border-red-500 @enderror"
-                    placeholder="Masukkan kata sandi"
-                    required 
-                    autocomplete="current-password">
+                <div class="relative">
+                    <input type="password" id="loginPassword" name="password"
+                        class="w-full px-4 py-3 pr-12 border border-gray-300 rounded focus:border-black focus:outline-none @error('password') border-red-500 @enderror"
+                        placeholder="Masukkan kata sandi"
+                        required autocomplete="current-password">
+
+                    <button type="button" onclick="togglePasswordVisibility('loginPassword', 'iconLogin')"
+                        class="absolute right-3 top-3 text-gray-700 hover:text-black" tabindex="-1">
+                        <span id="iconLogin">{!! '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>' !!}</span>
+                    </button>
+                </div>
                 @error('password')
                     <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                 @enderror
@@ -95,5 +107,39 @@
             </form>
         </div>
     </div>
+    
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                icon.innerHTML = eyeSlashSvg; // Show eye-slash
+            } else {
+                passwordInput.type = "password";
+                icon.innerHTML = eyeSvg; // Show eye
+            }
+        }
+
+        const eyeSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>`;
+
+        const eyeSlashSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.967 9.967 0 012.284-3.568m3.268-2.412A9.956 9.956 0 0112 5c4.477 0 8.267 2.943 9.542 7a9.961 9.961 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3l18 18" />
+            </svg>`;
+    </script>
+
 </div>
 @endsection

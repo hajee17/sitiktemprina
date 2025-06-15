@@ -1,121 +1,186 @@
 @extends('layouts.master')
 
 @section('content')
-<div style="position: relative; width: 100vw; height: 100vh; background: #FFFFFF; display: flex; justify-content: center; align-items: center;">
-    <div style="width: 1200px; height: 760px; background: #ECEBE4; border: 4px solid #000000; border-radius: 40px; display: flex; overflow: hidden;">
+<div class="relative w-full min-h-screen bg-white flex justify-center items-center">
+    <div class="w-[1200px] h-[760px] bg-[#ECEBE4] border-4 border-black rounded-[40px] flex overflow-hidden">
         
-        <!-- Bagian Kanan (Background Gambar) -->
-        <div style="width: 50%; background: url('{{ asset('images/login-image.png') }}') no-repeat center center; background-size: cover;"></div>
+        <!-- Bagian Kiri (Background Gambar) -->
+        <div class="w-1/2 bg-cover bg-center" style="background-image: url('{{ asset('images/login-image.png') }}')"></div>
 
-        <!-- Bagian Kiri (Form Registrasi) -->
-        <div style="width: 50%; background: #FFFFFF; padding: 50px; display: flex; flex-direction: column; justify-content: center; position: relative;">
+        <!-- Bagian Kanan (Form Registrasi) -->
+        <div class="w-1/2 bg-white p-12 flex flex-col justify-center relative">
             
             <!-- Tombol Masuk -->
-            <div style="position: absolute; top: 20px; right: 30px;">
-                <a href="{{ route('login') }}" style="text-decoration: none; background: black; color: white; padding: 10px 20px; border-radius: 20px;">Masuk</a>
+            <div class="absolute top-5 right-8">
+                <a href="{{ route('login') }}" class="inline-block bg-black text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors">Masuk</a>
             </div>
 
             <!-- Judul -->
-            <div style="text-align: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 28px;">Selamat Datang!</h2>
-                <p style="color: #5E5E5E;">Buat akun Anda dan mulai sekarang.</p>
+            <div class="text-left mb-6">
+                <h2 class="text-2xl font-bold">Selamat Datang!</h2>
+                <p class="text-gray-500 mt-2">Buat akun Anda dan mulai sekarang.</p>
             </div>
 
             <!-- Form Registrasi -->
-            <form method="POST" action="{{ route('register') }}" style="display: flex; flex-direction: column; gap: 15px;">
+            <form method="POST" action="{{ route('register') }}" class="flex flex-col gap-4">
                 @csrf
 
                 <!-- Nama Lengkap -->
                 <div>
-                    <label for="Name" style="font-weight: bold;">Nama Lengkap</label>
-                    <input type="text" id="Name" name="Name" placeholder="Masukkan nama lengkap" 
-                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                    <label for="Name" class="block font-semibold mb-1.5">Nama Lengkap</label>
+                    <input type="text" id="Name" name="Name" placeholder="Masukkan nama lengkap"
+                        class="w-full px-4 py-3 border border-gray-300 rounded focus:border-black focus:outline-none @error('Name') border-red-500 @enderror"
                         value="{{ old('Name') }}" required autofocus>
                     @error('Name')
-                        <span style="color: red; font-size: 14px;">{{ $message }}</span>
+                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <label for="Email" style="font-weight: bold;">Email</label>
-                    <input type="email" id="Email" name="Email" placeholder="Masukkan email" 
-                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                    <label for="Email" class="block font-semibold mb-1.5">Email</label>
+                    <input type="email" id="Email" name="Email" placeholder="Masukkan email"
+                        class="w-full px-4 py-3 border border-gray-300 rounded focus:border-black focus:outline-none @error('Email') border-red-500 @enderror"
                         value="{{ old('Email') }}" required>
                     @error('Email')
-                        <span style="color: red; font-size: 14px;">{{ $message }}</span>
+                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>
 
                 <!-- Nomor Telepon -->
                 <div>
-                    <label for="Telp_Num" style="font-weight: bold;">Nomor Telepon</label>
-                    <input type="text" id="Telp_Num" name="Telp_Num" placeholder="Masukkan nomor telepon" 
-                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                    <label for="Telp_Num" class="block font-semibold mb-1.5">Nomor Telepon</label>
+                    <input type="text" id="Telp_Num" name="Telp_Num" placeholder="Masukkan nomor telepon"
+                        class="w-full px-4 py-3 border border-gray-300 rounded focus:border-black focus:outline-none @error('Telp_Num') border-red-500 @enderror"
                         value="{{ old('Telp_Num') }}" required>
                     @error('Telp_Num')
-                        <span style="color: red; font-size: 14px;">{{ $message }}</span>
+                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>
 
                 <!-- Password -->
                 <div>
-                    <label for="password" style="font-weight: bold;">Kata Sandi</label>
-                    <input type="password" id="password" name="password" placeholder="Masukkan kata sandi (minimal 8 karakter)" 
-                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
-                        required>
+                    <label for="registerPassword" class="block font-semibold mb-1.5">Kata Sandi</label>
+                    <div class="relative">
+                        <input type="password" id="registerPassword" name="password"
+                            class="w-full px-4 py-3 pr-12 border border-gray-300 rounded focus:border-black focus:outline-none @error('password') border-red-500 @enderror"
+                            placeholder="Masukkan kata sandi (minimal 8 karakter)" required>
+
+                        <button type="button" onclick="togglePasswordVisibility('registerPassword', 'iconRegister')" 
+                            class="absolute right-3 top-3 text-gray-700 hover:text-black" tabindex="-1">
+                            <span id="iconRegister">{!! '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>' !!}</span>
+                        </button>
+                    </div>
                     @error('password')
-                        <span style="color: red; font-size: 14px;">{{ $message }}</span>
+                        <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                     @enderror
                 </div>
-                
+
                 <!-- Konfirmasi Password -->
                 <div>
-                    <label for="password_confirmation" style="font-weight: bold;">Konfirmasi Kata Sandi</label>
-                    <input type="password" id="password_confirmation" name="password_confirmation" 
-                        placeholder="Masukkan ulang kata sandi" 
-                        style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;" required>
+                    <label for="confirmPassword" class="block font-semibold mb-1.5">Konfirmasi Kata Sandi</label>
+                    <div class="relative">
+                        <input type="password" id="confirmPassword" name="password_confirmation"
+                            class="w-full px-4 py-3 pr-12 border border-gray-300 rounded focus:border-black focus:outline-none"
+                            placeholder="Masukkan ulang kata sandi" required>
+
+                        <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'iconConfirm')" 
+                            class="absolute right-3 top-3 text-gray-700 hover:text-black" tabindex="-1">
+                            <span id="iconConfirm">{!! '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>' !!}</span>
+                        </button>
+                    </div>
                 </div>
-                <!-- Role (Hidden) -->
+
+                <!-- Role Hidden -->
                 <input type="hidden" name="ID_Role" value="2">
 
-                <!-- Syarat & Ketentuan -->
-                <div>
-                    <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">Saya menyetujui <a href="#">Syarat Penggunaan</a> dan <a href="#">Kebijakan Privasi</a></label>
-                    @error('terms')
-                        <span style="color: red; font-size: 14px;">{{ $message }}</span>
-                    @enderror
+                <!-- Terms -->
+                <div class="flex items-start gap-2">
+                    <input type="checkbox" id="terms" name="terms" class="mt-1" required>
+                    <label for="terms" class="text-sm">Saya menyetujui <a href="#" class="text-blue-600 hover:underline">Syarat Penggunaan</a> dan <a href="#" class="text-blue-600 hover:underline">Kebijakan Privasi</a></label>
                 </div>
+                @error('terms')
+                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                @enderror
 
-                <!-- Tombol Submit -->
-                <button type="submit" style="width: 100%; padding: 12px; background: black; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer;">
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-black text-white py-3.5 rounded font-medium hover:bg-gray-800 transition-colors">
                     Buat Akun
                 </button>
 
                 <!-- Divider -->
-                <div style="text-align: center; margin: 10px 0; color: #5E5E5E;">atau daftar dengan</div>
+                <div class="relative flex items-center my-2">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-sm">atau daftar dengan</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
 
-                <!-- Tombol Google -->
+                <!-- Google Register -->
                 @if(config('services.google.client_id'))
-                    <a href="{{ route('register.google') }}" style="text-decoration: none;">
-                        <button type="button" style="width: 100%; padding: 10px; background: white; border: 1px solid gray; display: flex; justify-content: center; align-items: center; gap: 10px; border-radius: 5px; cursor: pointer;">
-                            <img src="{{ asset('images/logo-google.png') }}" alt="Google" style="height: 20px;">
+                    <a href="{{ route('register.google') }}" class="block">
+                        <button type="button" class="w-full bg-white border border-gray-300 py-2.5 rounded font-medium flex justify-center items-center gap-3 hover:border-gray-400 transition-colors">
+                            <img src="{{ asset('images/logo-google.png') }}" alt="Google" class="h-5">
                             Daftar dengan Google
                         </button>
                     </a>
                 @endif
             </form>
 
-            <!-- Error Global -->
+            <!-- Global Error -->
             @if($errors->any())
-                <div style="margin-top: 20px; color: red;">
+                <div class="mt-5 text-red-600 text-sm">
                     @foreach($errors->all() as $error)
                         <p>{{ $error }}</p>
                     @endforeach
                 </div>
             @endif
+
         </div>
     </div>
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                icon.innerHTML = eyeSlashSvg; // Show eye-slash
+            } else {
+                passwordInput.type = "password";
+                icon.innerHTML = eyeSvg; // Show eye
+            }
+        }
+
+        const eyeSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>`;
+
+        const eyeSlashSvg = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.967 9.967 0 012.284-3.568m3.268-2.412A9.956 9.956 0 0112 5c4.477 0 8.267 2.943 9.542 7a9.961 9.961 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3l18 18" />
+            </svg>`;
+    </script>
+
 </div>
 @endsection
