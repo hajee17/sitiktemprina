@@ -1,4 +1,4 @@
-# docker-compose.yml
+version: '3.8'
 
 services:
   # Layanan Aplikasi Laravel dengan FrankenPHP
@@ -8,42 +8,65 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "80:80"       # Port HTTP
-      - "443:443"     # Port HTTPS
-      - "443:443/udp" # Port untuk HTTP/3
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - .:/app
     depends_on:
-      - db
+      - db # Hanya bergantung pada database
     environment:
-      # Arahkan koneksi ke layanan database 'db'
+      APP_NAME: Laravel
+      APP_ENV: local
+      APP_KEY: base64:IHfliuritWEmirsu6G/BnYwHkx7I3xjVdgFHIGZIVx8=
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: http://localhost
+      
+      LOG_CHANNEL: stack
+      LOG_DEPRECATIONS_CHANNEL: null
+      LOG_LEVEL: debug
+
+      DB_CONNECTION: pgsql
       DB_HOST: db
-      DB_DATABASE: ${DB_DATABASE:-sitikdb}
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-sitik_db}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-password}
-      # Beritahu Laravel untuk menemukan Vite di layanan 'vite'
-      VITE_SERVER_HOST: vite
-      # URL Server untuk HTTPS otomatis dari Caddy/FrankenPHP
-      SERVER_NAME: "localhost"
 
-  # --- LAYANAN BARU UNTUK VITE DEV SERVER ---
+      # Variabel Redis dan Mailpit dihapus jika tidak digunakan:
+      # REDIS_HOST: redis
+      # REDIS_PASSWORD: ${REDIS_PASSWORD:-null}
+      # REDIS_PORT: 6379
+      # MAIL_MAILER: smtp
+      # MAIL_HOST: mailpit
+      # MAIL_PORT: 1025
+      # MAIL_USERNAME: null
+      # MAIL_PASSWORD: null
+      # MAIL_ENCRYPTION: null
+      # MAIL_FROM_ADDRESS: "hello@example.com"
+      # MAIL_FROM_NAME: "${APP_NAME}"
+
+      VITE_SERVER_HOST: vite
+      SERVER_NAME: "localhost"
+      VITE_APP_NAME: "${APP_NAME}"
+      VITE_PUSHER_APP_KEY: "${VITE_PUSHER_APP_KEY:-}"
+
+  # --- LAYANAN UNTUK VITE DEV SERVER ---
   vite:
     image: node:20-alpine
     working_dir: /app
     volumes:
       - .:/app
+      - /app/node_modules
     ports:
-      # Buka port Vite agar bisa diakses dari browser
       - "5173:5173"
-    # Perintah untuk menginstal dependensi dan menjalankan server dev
     command: sh -c "npm install && npm run dev -- --host"
 
-  # Layanan Database PostgreSQL
   db:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE:-sitikdb}
+      POSTGRES_DB: ${DB_DATABASE:-sitik_db}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
@@ -51,5 +74,8 @@ services:
     ports:
       - "5432:5432"
 
+# Layanan Redis dan Mailpit dihapus dari sini
+
 volumes:
   db_data:
+# Volume Redis dan Mailpit dihapus dari sini

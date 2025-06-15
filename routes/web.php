@@ -95,8 +95,11 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/tickets/{ticket}', 'destroy')->name('tickets.destroy');
             // Jika ada detail view spesifik untuk developer, tambahkan di sini.
             Route::get('/tickets/{ticket}/detail', 'show')->name('tickets.show'); 
+            
         });
         Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
+        Route::get('/developer/kelola-ticket', [DeveloperTicketController::class, 'index'])->name('developer.kelola-ticket');
+
         // Rute untuk Manajemen Akun (CRUD)
         // Menggunakan Route::resource akan secara otomatis membuat rute index, create, store, show, edit, update, destroy
         Route::resource('akun', DeveloperAccountController::class);

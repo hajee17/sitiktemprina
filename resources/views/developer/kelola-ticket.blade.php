@@ -1,9 +1,24 @@
+{{-- Path: resources/views/developer/kelola-ticket.blade.php --}}
+
 @extends('layouts.developer')
 
 @section('content')
 <div class="w-full min-h-screen bg-[#F5F6FA] p-6">
 
     <h1 class="text-2xl font-bold mb-6 text-gray-800">Kelola Semua Tiket</h1>
+
+    {{-- <<<--- TAMBAHKAN BAGIAN INI UNTUK MENAMPILKAN PESAN SUKSES/ERROR ---}}
+    @if(session('success'))
+        <div class="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+            {{ session('error') }}
+        </div>
+    @endif
+    {{-- <<<--- AKHIR DARI BAGIAN YANG DITAMBAHKAN ---}}
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         @foreach ($stats as $label => $value)
@@ -100,7 +115,7 @@
 
 <div id="ticketModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-lg w-11/12 max-w-lg p-6 relative max-h-[90vh] overflow-y-auto">
-        <button onclick="closeModal()" class="absolute top-3 right-3 text-2xl text-gray-500 hover:text-gray-800">&times;</button>
+        <button onclick="closeModal()" class="absolute top-3 right-3 text-2xl text-gray-500 hover:text-gray-800">×</button>
 
         {{-- Modal Detail --}}
         <div id="modalDetail" class="hidden space-y-2">
@@ -119,6 +134,7 @@
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="redirect_to" value="kelola_ticket">
                 <div class="mb-3">
                     <label class="block font-semibold mb-1">Judul</label>
                     <input type="text" name="title" id="editJudul" class="w-full border rounded px-3 py-2 mt-1">
@@ -160,20 +176,20 @@
             document.getElementById('modalEdit').classList.remove('hidden');
             document.getElementById('editForm').action = `{{ url('developer/tickets') }}/${ticket.id}`;
             document.getElementById('editIdLabel').innerText = `#${ticket.id}`;
-            document.getElementById('editJudul').value = ticket.title;
-
-            const statusSelect = document.getElementById('editStatus');
-            statusSelect.innerHTML = '';
-            allStatuses.forEach(status => {
-                const option = document.createElement('option');
-                option.value = status.id;
-                option.innerText = status.name;
-                if (ticket.status.id === status.id) {
-                    option.selected = true;
-                }
-                statusSelect.appendChild(option);
-            });
-        }
+            document.getElementById('editJudul').value = ticket.title; // Pastikan nilai judul diisi saat modal dibuka
+                
+                const statusSelect = document.getElementById('editStatus');
+                statusSelect.innerHTML = '';
+                allStatuses.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status.id;
+                    option.innerText = status.name;
+                    if (ticket.status.id === status.id) {
+                        option.selected = true;
+                    }
+                    statusSelect.appendChild(option);
+                });
+            }
     }
 
     function closeModal() {

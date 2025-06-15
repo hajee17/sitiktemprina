@@ -129,9 +129,11 @@ class TicketController extends Controller
     {
         // ... (otorisasi & validasi dari sebelumnya) ...
         $validated = $request->validate([
+            'title' => 'required|string|max:255',
             'status_id' => 'required|exists:ticket_statuses,id',
             'comment' => 'nullable|string',
             'create_knowledge_base' => 'nullable|boolean',
+            'redirect_to' => 'nullable|string',
         ]);
 
         // Simpan komentar terlebih dahulu jika ada
@@ -170,7 +172,12 @@ class TicketController extends Controller
             }
         }
 
-        return redirect()->route('developer.tickets.show', $ticket->id)->with('success', 'Tiket berhasil diperbarui.');
+        if ($validated['redirect_to'] === 'kelola_ticket') {
+    return redirect()->route('developer.kelola-ticket')->with('success', 'Tiket berhasil diperbarui.');
+    }
+
+    return redirect()->route('developer.tickets.show', $ticket->id)->with('success', 'Tiket berhasil diperbarui.');
+
     }
     
     /**
