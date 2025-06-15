@@ -1,7 +1,7 @@
 # Dockerfile
 
 # Gunakan base image resmi FrankenPHP untuk Laravel
-FROM dunglas/frankenphp:php8.2-alpine
+FROM dunglas/frankenphp:php8.2-alpine   
 
 # (Opsional) Instal ekstensi PHP tambahan jika diperlukan
 RUN install-php-extensions pgsql pdo_pgsql intl zip
