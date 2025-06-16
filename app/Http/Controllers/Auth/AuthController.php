@@ -62,11 +62,11 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'Name' => ['required', 'string', 'max:255'],
-            'Email' => ['required', 'string', 'email', 'max:255', 'unique:accounts,email'],
-            'Telp_Num' => ['required', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'terms' => ['accepted'],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'string', 'email', 'max:255', 'unique:accounts,email'],
+            'telp_num'  => ['required', 'string', 'max:20'], // disesuaikan menjadi snake_case
+            'password'  => ['required', 'string', 'min:8', 'confirmed'],
+            'terms'     => ['accepted'],
         ]);
 
         if ($validator->fails()) {
@@ -75,20 +75,23 @@ class AuthController extends Controller
 
         $userRole = Role::where('name', 'user')->first();
 
+        if (!$userRole) {
+            return redirect()->route('register')->with('error', 'Konfigurasi role dasar tidak ditemukan.');
+        }
+
         $account = Account::create([
-            'name' => $request->Name,
-            'username' => explode('@', $request->Email)[0] . rand(10,99), // Simple username generation
-            'email' => $request->Email,
-            'phone' => $request->Telp_Num,
+            'name' => $request->name,
+            'username' => explode('@', $request->email)[0] . rand(100, 999),
+            'email' => $request->email,
+            'phone' => $request->telp_num,
             'password' => Hash::make($request->password),
-            'role_id' => $userRole->id, //
+            'role_id' => $userRole->id,
         ]);
 
-        Auth::login($account);
-
-        return redirect()->route('user.dashboard');
+        return redirect()->route('login')
+                        ->with('success', 'Registrasi berhasil! Silakan masuk dengan akun Anda.')
+                        ->withInput(['email' => $request->email]);
     }
-
     /**
      * Menangani proses logout.
      */

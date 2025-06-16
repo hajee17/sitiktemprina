@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\KnowledgeBase;
 use App\Models\KnowledgeTag;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 
 class KnowledgeBaseController extends Controller
@@ -40,10 +41,20 @@ class KnowledgeBaseController extends Controller
      * View: user/knowledgebase-detail.blade.php
      */
     public function show(KnowledgeBase $knowledgeBase)
-    {
-        // Laravel's Route Model Binding akan otomatis fetch data berdasarkan ID
-        $knowledgeBase->load('author', 'tags'); // Eager load relasi
+{
+    $sourceTicket = null;
 
-        return view('user.knowledgebase-detail', ['knowledge' => $knowledgeBase]);
+    // Cek apakah artikel ini berasal dari sebuah tiket
+    if ($knowledgeBase->source_ticket_id) {
+        // Jika ya, ambil data tiket tersebut lengkap dengan semua relasinya
+        $sourceTicket = Ticket::with(['author', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author'])
+                              ->find($knowledgeBase->source_ticket_id);
     }
+
+    // Kirim data knowledge base dan (jika ada) data tiket sumber ke view
+    return view('user.knowledgebase-detail', [
+        'knowledge' => $knowledgeBase,
+        'sourceTicket' => $sourceTicket,
+    ]);
+}
 }

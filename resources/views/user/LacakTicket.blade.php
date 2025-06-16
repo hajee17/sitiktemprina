@@ -3,55 +3,58 @@
 @section('title', 'Detail Tiket #' . $ticket->id)
 
 @section('content')
-<div style="width: 100%; padding: 40px 20px; background: #F3F2F2;">
-    <div style="max-width: 900px; margin: auto; display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+
+<div class="w-full py-10 px-5 bg-gray-100">
+    <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <!-- Kolom Kiri: Detail dan Form Komentar -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <!-- Detail Tiket -->
-            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-start">
                     <div>
-                        <h2 style="color: #333; margin: 0; font-size: 20px; font-weight: bold;">{{ $ticket->title }}</h2>
-                        <p style="margin: 0; font-size: 14px; color: #666;">ID: #{{ $ticket->id }}</p>
+                        <h2 class="text-gray-800 text-xl font-bold m-0">{{ $ticket->title }}</h2>
+                        <p class="m-0 text-sm text-gray-500">ID: #{{ $ticket->id }}</p>
                     </div>
                     @php
                         $statusName = optional($ticket->status)->name ?? 'Unknown';
-                        $statusColors = ['Open' => '#3B82F6','In Progress' => '#F59E0B','Closed' => '#10B981','Cancelled' => '#EF4444', 'On Hold' => '#F97316'];
+                        $statusColors = [
+                            'Open' => 'bg-blue-500', 'In Progress' => 'bg-yellow-500',
+                            'Closed' => 'bg-green-500', 'Cancelled' => 'bg-red-500',
+                            'On Hold' => 'bg-orange-500'
+                        ];
                     @endphp
-                    <span style="background: {{ $statusColors[$statusName] ?? '#6B7280' }}; color: white; padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;">{{ $statusName }}</span>
+                    <span class="text-white text-xs font-semibold px-3 py-1 rounded-full {{ $statusColors[$statusName] ?? 'bg-gray-500' }}">
+                        {{ $statusName }}
+                    </span>
                 </div>
-                <hr style="margin: 16px 0; border-top: 1px solid #E5E7EB;">
-                <p style="margin-top: 15px; font-size: 14px; color: #333; white-space: pre-wrap;">{{ $ticket->description }}</p>
+                <hr class="my-4">
+                <p class="mt-4 text-sm text-gray-800 whitespace-pre-wrap">{{ $ticket->description }}</p>
                 @if($ticket->attachments->isNotEmpty())
-                    <div style="margin-top: 16px;">
-                        <p style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Lampiran Awal:</p>
+                    <div class="mt-4">
+                        <p class="font-semibold text-sm mb-2">Lampiran Awal:</p>
                         @foreach($ticket->attachments as $attachment)
-                         <a href="{{ asset('storage/' . $attachment->path) }}" target="_blank" style="color: #3B82F6; text-decoration: underline; font-size: 14px;">{{ basename($attachment->path) }}</a>
+                         <a href="{{ asset('storage/' . $attachment->path) }}" target="_blank" class="text-blue-600 underline text-sm">{{ basename($attachment->path) }}</a>
                         @endforeach
                     </div>
                 @endif
             </div>
 
-            <!-- Form Tambah Komentar -->
-            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 18px; font-weight: bold; margin: 0 0 16px 0;">Beri Tanggapan atau Jawaban</h3>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-bold mb-4">Beri Tanggapan atau Jawaban</h3>
                 <form action="{{ route('user.comments.store', $ticket->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <textarea name="message" rows="4" placeholder="Tulis komentar Anda di sini..." style="width: 100%; padding: 10px; border: 1px solid #D1D5DB; border-radius: 8px; margin-bottom: 12px;"></textarea>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <input type="file" name="comment_file" id="comment_file" style="font-size: 12px;">
-                        <button type="submit" style="padding: 10px 20px; background: black; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Kirim</button>
+                    <textarea name="message" rows="4" placeholder="Tulis komentar Anda di sini..." class="w-full p-2 border border-gray-300 rounded-md mb-3"></textarea>
+                    <div class="flex justify-between items-center">
+                        <input type="file" name="comment_file" id="comment_file" class="text-sm">
+                        <button type="submit" class="px-5 py-2 bg-black text-white border-none rounded-md font-bold cursor-pointer hover:bg-gray-800">Kirim</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Kolom Kanan: Info & Riwayat Diskusi -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 16px; font-weight: bold; margin: 0 0 16px 0; border-bottom: 1px solid #E5E7EB; padding-bottom: 12px;">Detail Info</h3>
-                <div style="font-size: 14px; color: #374151; line-height: 1.8;">
+        <div class="flex flex-col gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-base font-bold mb-4 border-b pb-3">Detail Info</h3>
+                <div class="text-sm text-gray-800 space-y-3">
                     <p><strong>Pelapor:</strong><br>{{ optional($ticket->author)->name }}</p>
                     <p><strong>Kategori:</strong><br>{{ optional($ticket->category)->name }}</p>
                     <p><strong>Prioritas:</strong><br>{{ optional($ticket->priority)->name }}</p>
@@ -59,14 +62,14 @@
                 </div>
             </div>
             @if(isset($recommendations) && $recommendations->isNotEmpty())
-            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 16px; font-weight: bold; margin: 0 0 16px 0; border-bottom: 1px solid #E5E7EB; padding-bottom: 12px;">💡 Rekomendasi Solusi</h3>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-base font-bold mb-4 border-b pb-3">💡 Rekomendasi Solusi</h3>
+                <div class="flex flex-col gap-3">
                     @foreach($recommendations as $kb)
-                        <a href="{{ route('user.knowledgebase.show', $kb->id) }}" style="text-decoration: none; color: inherit;">
-                            <div style="padding: 12px; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB; hover: border-color: #3B82F6;">
-                                <p style="font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">{{ $kb->title }}</p>
-                                <p style="font-size: 13px; color: #6B7280; margin: 0;">{{ Str::limit($kb->content, 80) }}</p>
+                        <a href="{{ route('user.knowledgebase.show', $kb->id) }}" class="no-underline text-inherit block">
+                            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-500">
+                                <p class="font-semibold text-sm m-0 mb-1">{{ $kb->title }}</p>
+                                <p class="text-xs text-gray-600 m-0">{{ Str::limit($kb->content, 80) }}</p>
                             </div>
                         </a>
                     @endforeach
@@ -74,26 +77,26 @@
             </div>
             @endif
 
-            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);">
-                <h3 style="font-size: 16px; font-weight: bold; margin: 0 0 16px 0; border-bottom: 1px solid #E5E7EB; padding-bottom: 12px;">Riwayat Diskusi</h3>
-                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-base font-bold mb-4 border-b pb-3">Riwayat Diskusi</h3>
+                <div class="max-h-96 overflow-y-auto pr-2 space-y-4">
                     @forelse($ticket->comments->sortBy('created_at') as $comment)
-                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode(optional($comment->author)->name) }}&background=random" style="width: 40px; height: 40px; border-radius: 50%;">
+                    <div class="flex gap-3">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(optional($comment->author)->name) }}&background=random" class="w-10 h-10 rounded-full flex-shrink-0">
                         <div>
-                            <p style="font-weight: 600; font-size: 14px; margin: 0;">{{ optional($comment->author)->name }} <span style="font-weight: normal; color: #6B7280; font-size: 12px;">• {{ $comment->created_at->diffForHumans() }}</span></p>
-                            <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; margin-top: 4px;">
-                                <p style="font-size: 14px; color: #1F2937; margin: 0; white-space: pre-wrap;">{{ $comment->message }}</p>
+                            <p class="font-semibold text-sm m-0">{{ optional($comment->author)->name }} <span class="font-normal text-gray-500 text-xs">• {{ $comment->created_at->diffForHumans() }}</span></p>
+                            <div class="bg-gray-100 p-3 rounded-md mt-1">
+                                <p class="text-sm text-gray-800 m-0 whitespace-pre-wrap">{{ $comment->message }}</p>
                                 @if($comment->file_path)
                                     <a href="{{ asset('storage/' . $comment->file_path) }}" target="_blank">
-                                        <img src="{{ asset('storage/' . $comment->file_path) }}" style="margin-top: 8px; border-radius: 8px; max-width: 200px; max-height: 150px;">
+                                        <img src="{{ asset('storage/' . $comment->file_path) }}" class="mt-2 rounded-md max-w-[200px] max-h-36">
                                     </a>
                                 @endif
                             </div>
                         </div>
                     </div>
                     @empty
-                    <p style="text-align: center; font-size: 14px; color: #6B7280;">Belum ada diskusi pada tiket ini.</p>
+                    <p class="text-center text-sm text-gray-500">Belum ada diskusi pada tiket ini.</p>
                     @endforelse
                 </div>
             </div>

@@ -5,7 +5,6 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Knowledge Base</h1>
         <div class="flex gap-3 w-full md:w-auto justify-end">
-            {{-- Tombol mengarah ke halaman pembuatan artikel baru --}}
             <a href="{{ route('developer.knowledgebase.create') }}" class="w-full md:w-auto text-center bg-black text-white px-4 py-2 rounded-full font-semibold hover:bg-gray-800">
                 + Baru
             </a>
@@ -19,9 +18,8 @@
         </div>
     </form>
 
-    {{-- @todo: Implement filter logic in controller --}}
     <div class="flex flex-wrap gap-3 mb-6">
-        @foreach(['Semua', 'Jaringan', 'Printer', 'Gaji', 'Software', 'Akun'] as $kategori)
+        @foreach(['Masalah Teknis', 'Software', 'Printer', 'Gaji', 'Software', 'Akun'] as $kategori)
             <a href="{{ route('developer.knowledgebase.index', ['tag' => $kategori == 'Semua' ? '' : $kategori]) }}" class="px-4 py-1 rounded-full border border-gray-400 text-sm font-semibold hover:bg-black hover:text-white {{ request('tag') == $kategori ? 'bg-black text-white' : '' }}">
                 {{ $kategori }}
             </a>
@@ -48,7 +46,7 @@
                         </p>
                     </div>
                 </div>
-                {{-- PERBAIKAN DI SINI: x-data harus berada di div pembungkus dropdown per item --}}
+
                 <div class="relative mt-4 sm:mt-0 sm:ml-4 flex-shrink-0" x-data="{ open: false }"> {{-- x-data dipindahkan ke sini --}}
                     <button @click="open = !open" class="text-gray-500 hover:text-gray-800">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>

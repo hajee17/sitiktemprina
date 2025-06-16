@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Ticket;
+use App\Models\TicketComment;
+use App\Models\TicketStatus;
 use App\Models\Department;
 use App\Models\Position;
 use App\Models\TicketCategory;
@@ -57,7 +59,13 @@ class TicketController extends Controller
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:2048',
         ]);
         
-        // PERBAIKAN: Tentukan prioritas menggunakan service
+        $thumbnailPath = null;
+        if ($request->hasFile('attachments')) {
+            $firstFile = $request->file('attachments')[0];
+ 
+            $thumbnailPath = $firstFile->store('tickets/thumbnails', 'public');
+        }
+
         $predictedPriorityId = $priorityService->predict($request);
 
         $ticket = Ticket::create([
@@ -112,16 +120,11 @@ class TicketController extends Controller
     public function cancel(Request $request, Ticket $ticket)
     {
         if ($ticket->account_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Anda tidak memiliki izin untuk tiket ini.');
         }
 
-        $request->validate(['Desc' => 'required|string']);
-
-        $ticket->status_id = 5; // Asumsi status 'Cancelled'
-        // Anda mungkin ingin menyimpan alasan pembatalan di tabel comments
-        // $ticket->comments()->create([...]);
-        $ticket->save();
+        $ticket->delete();
         
-        return back()->with('success', 'Tiket berhasil dibatalkan.');
+        return redirect()->route('user.tickets.index')->with('success', 'Tiket berhasil dihapus secara permanen.');
     }
 }

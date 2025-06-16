@@ -18,4 +18,6 @@ class KnowledgeTag extends Model
     {
         return $this->belongsToMany(KnowledgeBase::class, 'knowledge_base_knowledge_tag');
     }
+
+    
 }

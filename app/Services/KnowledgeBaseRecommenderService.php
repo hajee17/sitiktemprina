@@ -18,14 +18,13 @@ class KnowledgeBaseRecommenderService
      */
     public function getRecommendations(Ticket $ticket, int $limit = 3): Collection
     {
-        // Ambil semua artikel KB yang relevan (misalnya, yang berformat 'blog').
+
         $knowledgeBases = KnowledgeBase::where('type', 'blog')->get();
 
         if ($knowledgeBases->isEmpty()) {
-            return collect(); // Kembalikan koleksi kosong jika tidak ada KB.
+            return collect();
         }
 
-        // Gabungkan judul dan deskripsi tiket menjadi satu teks.
         $ticketText = $ticket->title . ' ' . $ticket->description;
 
         // 1. Pra-pemrosesan & Vektorisasi (TF-IDF)
@@ -53,10 +52,8 @@ class KnowledgeBaseRecommenderService
         // 3. Urutkan dan Filter
         $sortedScores = $scores->sortByDesc('score')->values()->all();
 
-        // Ambil ID dari artikel dengan skor tertinggi.
         $recommendedIds = collect($sortedScores)->pluck('kb_id')->take($limit);
 
-        // Ambil model KnowledgeBase berdasarkan ID yang direkomendasikan dan urutkan.
         return $knowledgeBases->whereIn('id', $recommendedIds)
                               ->sortBy(function($kb) use ($recommendedIds) {
                                   return array_search($kb->id, $recommendedIds->all());

@@ -16,6 +16,7 @@
         </a>
     </div>
 </div>
+
 <!-- Status Tiket Section -->
 <div class="container mx-auto text-center my-12">
     <h3 class="text-2xl font-semibold text-gray-800">Cek Status Tiket Anda</h3>

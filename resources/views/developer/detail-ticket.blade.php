@@ -6,7 +6,21 @@
 <div class="bg-gray-50 p-6 min-h-screen" x-data="{ status: '{{ $ticket->status_id }}' }">
     <div class="max-w-7xl mx-auto">
         <h2 class="font-bold text-2xl mb-6">Detail & Penanganan Tiket</h2>
-
+        @if(session('info'))
+            <div class="mb-4 p-4 bg-blue-100 border border-blue-200 text-blue-700 rounded-lg" role="alert">
+                {{ session('info') }}
+            </div>
+        @endif
+        @if ($errors->any())
+            <div class="mb-4 p-4 bg-red-100 border border-red-200 text-red-700 rounded-lg">
+                <strong class="font-bold">Oops! Terjadi kesalahan:</strong>
+                <ul class="mt-2 list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <!-- Kolom Utama: Detail dan Komentar -->
@@ -64,39 +78,47 @@
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-xl shadow-md border p-6 sticky top-24">
                     <h3 class="font-bold text-lg mb-4">Aksi & Pembaruan</h3>
-                    <form method="POST" action="{{ route('developer.tickets.update', $ticket->id) }}">
+                    <form method="POST" action="{{ route('developer.tickets.update', $ticket->id) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
+                        <input type="hidden" name="title" value="{{ $ticket->title }}">
+
                         <div class="space-y-4">
+                            {{-- 1. Input untuk Status Tiket --}}
                             <div>
                                 <label for="status_id" class="block text-sm font-medium text-gray-700">Ubah Status Tiket</label>
                                 <select id="status_id" name="status_id" x-model="status" class="mt-1 w-full p-2 border-gray-300 rounded-md">
                                     @foreach(App\Models\TicketStatus::all() as $status)
-                                        <option value="{{ $status->id }}">{{ $status->name }}</option>
+                                        <option value="{{ $status->id }}" @if($ticket->status_id == $status->id) selected @endif>{{ $status->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
+
+                            {{-- 2. Input untuk Tanggapan / Solusi (Teks) --}}
                             <div>
                                 <label for="comment" class="block text-sm font-medium text-gray-700">Tanggapan / Solusi</label>
                                 <textarea id="comment" name="comment" rows="4" class="mt-1 w-full p-2 border-gray-300 rounded-md" placeholder="Tuliskan tindakan atau solusi Anda di sini..."></textarea>
                             </div>
-                            <!-- Opsi CBR, hanya muncul jika status 'Closed' dipilih -->
-                            <div x-show="status == {{ \App\Models\TicketStatus::where('name', 'Closed')->first()->id }}" x-transition>
-                                <label class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            
+                            {{-- 3. Input untuk Lampiran File --}}
+                            <div>
+                                <label for="comment_file" class="block text-sm font-medium text-gray-700">Lampirkan File (Opsional)</label>
+                                <input type="file" name="comment_file" id="comment_file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-gray-100 hover:file:bg-gray-200">
+                            </div>
+
+                            {{-- 4. Opsi untuk membuat Knowledge Base --}}
+                            <div x-show="status == {{ \App\Models\TicketStatus::where('name', 'Closed')->first()->id ?? 0 }}" x-transition>
+                                <label class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer">
                                     <input type="checkbox" name="create_knowledge_base" value="1" class="rounded text-blue-600">
                                     <span class="ml-3 text-sm text-blue-800">Jadikan solusi ini artikel <strong>Knowledge Base</strong></span>
                                 </label>
                             </div>
-                            <button type="submit" class="w-full bg-black text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-gray-800">Simpan Perubahan</button>
+
+                            {{-- 5. Tombol Submit Tunggal --}}
+                            <button type="submit" class="w-full bg-black text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+                                Simpan Perubahan
+                            </button>
                         </div>
-                    </form>
-                    <hr class="my-6">
-                     <!-- Form untuk menambah komentar/gambar saja -->
-                    <form action="{{ route('developer.comments.store', $ticket->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <label for="comment_file" class="block text-sm font-medium text-gray-700">Tambah Lampiran di Komentar</label>
-                         <input type="file" name="comment_file" id="comment_file" class="mt-1 block w-full text-sm">
-                         <button type="submit" class="w-full mt-2 bg-gray-200 text-gray-800 py-2 rounded-lg text-sm font-semibold">Kirim Lampiran</button>
                     </form>
                 </div>
             </div>

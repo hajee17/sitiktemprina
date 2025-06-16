@@ -31,7 +31,7 @@
 
             {{-- Kolom Gambar --}}
             <div class="lg:w-1/2 mt-10 lg:mt-0">
-                <img src="{{ asset('images/hero-illustration.svg') }}" alt="Ilustrasi Tim Helpdesk" class="w-full h-auto">
+                <img src="{{ asset('images/team-helpdesk.png') }}" alt="Ilustrasi Tim Helpdesk" class="w-full h-auto">
             </div>
 
         </div>

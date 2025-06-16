@@ -5,7 +5,6 @@
     <h2 class="text-2xl font-bold text-center mb-4">Buat Tiket Baru</h2>
     <p class="text-center text-gray-500 mb-8">Silahkan isi formulir berikut untuk membuat tiket baru.</p>
 
-    {{-- PERBAIKAN: Menambahkan blok untuk menampilkan error validasi --}}
     @if ($errors->any())
         <div class="mb-4 p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg">
             <strong class="font-bold">Oops! Ada beberapa masalah dengan input Anda:</strong>
@@ -19,8 +18,6 @@
 
     <form action="{{ route('user.tickets.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
-
-        {{-- PERBAIKAN: Mengganti nama input menjadi snake_case sesuai controller --}}
         
         <!-- Sub Bisnis Unit -->
         <div>

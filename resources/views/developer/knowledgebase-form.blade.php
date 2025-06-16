@@ -3,7 +3,7 @@
 @section('title', isset($knowledge) ? 'Edit Artikel' : 'Buat Artikel Baru')
 
 @section('content')
-{{-- Inisialisasi Alpine.js untuk mengelola state 'type' --}}
+
 <div class="p-6 bg-gray-50 min-h-screen" x-data="{ type: '{{ old('type', $knowledge->type ?? 'blog') }}' }">
     <div class="max-w-4xl mx-auto">
         <div class="flex justify-between items-center mb-6">
@@ -37,8 +37,6 @@
                          @error('type') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Input Dinamis Berdasarkan Tipe -->
-                    {{-- PERBAIKAN: Menambahkan :disabled untuk mencegah field terkirim saat tidak aktif --}}
                     <div x-show="type === 'blog'">
                         <label for="content_blog" class="block text-sm font-medium text-gray-700">Konten Artikel</label>
                         <textarea name="content" id="content_blog" :disabled="type !== 'blog'" rows="12" class="mt-1 block w-full border-gray-300 rounded-md" placeholder="Tulis konten artikel di sini.">{{ old('content', isset($knowledge) && $knowledge->type == 'blog' ? $knowledge->content : '') }}</textarea>
@@ -59,8 +57,7 @@
                         <input type="url" name="content" id="content_video" :disabled="type !== 'video'" value="{{ old('content', isset($knowledge) && $knowledge->type == 'video' ? $knowledge->content : '') }}" class="mt-1 block w-full border-gray-300 rounded-md" placeholder="https://www.youtube.com/watch?v=...">
                         @error('content') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>
-                    
-                    <!-- Tags -->
+
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Tags (Kategori)</label>
                         <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4">

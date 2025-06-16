@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Developer;
 use App\Http\Controllers\Controller;
 use App\Models\KnowledgeBase;
 use App\Models\KnowledgeTag;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -82,12 +83,22 @@ class KnowledgeBaseController extends Controller
      */
     public function edit(KnowledgeBase $knowledgebase)
     {
-        $tags = KnowledgeTag::all();
-        // Pastikan relasi tags sudah di-load untuk form
-        $knowledgebase->load('tags');
-        
-        // Menggunakan view form yang sama dengan create
-        return view('developer.knowledgebase-form', ['knowledge' => $knowledgebase, 'tags' => $tags]);
+        if ($knowledgebase->source_ticket_id) {
+            
+            return redirect()
+                ->route('developer.tickets.show', $knowledgebase->source_ticket_id)
+                ->with('info', 'Artikel ini terhubung ke Tiket #' . $knowledgebase->source_ticket_id . '. Untuk memperbarui konten, silakan tambahkan komentar atau update tiket asli.');
+
+        } else {
+            
+            $tags = KnowledgeTag::all();
+            $knowledgebase->load('tags');
+            
+            return view('developer.knowledgebase-form', [
+                'knowledge' => $knowledgebase, 
+                'tags' => $tags
+            ]);
+        }
     }
 
     /**
@@ -138,5 +149,22 @@ class KnowledgeBaseController extends Controller
         $knowledgebase->delete();
 
         return redirect()->route('developer.knowledgebase.index')->with('success', 'Artikel berhasil dihapus.');
+    }
+
+    public function show(KnowledgeBase $knowledgeBase)
+    {
+    $sourceTicket = null;
+
+
+    if ($knowledgeBase->source_ticket_id) {
+        $sourceTicket = Ticket::with(['author', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author'])
+                              ->find($knowledgeBase->source_ticket_id);
+    }
+
+    // Kirim data knowledge base dan (jika ada) data tiket sumber ke view
+    return view('user.knowledgebase-detail', [
+        'knowledge' => $knowledgeBase,
+        'sourceTicket' => $sourceTicket,
+    ]);
     }
 }

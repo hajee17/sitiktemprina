@@ -42,7 +42,6 @@
                     @endif
                 </div>
                 <div>
-                    {{-- Menggunakan properti dari model yang benar --}}
                     <p class="font-semibold text-sm text-black">{{ $kb->title }}</p>
                     <p class="text-xs text-gray-600 mt-1">{{ optional($kb->tags->first())->name ?? 'Umum' }}</p>
                     <p class="text-xs text-gray-500">{{ optional($kb->author)->name ?? 'Admin' }} · {{ $kb->created_at->format('d M Y') }}</p>

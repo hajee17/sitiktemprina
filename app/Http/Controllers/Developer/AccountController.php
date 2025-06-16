@@ -1,102 +1,100 @@
 <?php
 
-namespace App\Http\Controllers\Developer;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; 
 use App\Models\Account;
 use App\Models\Role;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule; 
-class AccountController extends Controller
+use Illuminate\Support\Facades\Validator;
+use Laravel\Socialite\Facades\Socialite;
+
+class AuthController extends Controller
 {
     /**
-     * Menampilkan halaman kelola akun. (kelola-akun.blade.php)
+     * Menampilkan halaman login.
      */
-    public function index(Request $request)
+    public function showLoginForm()
     {
-        // Statistik
-        $userCounts = [
-            'Developer' => Account::where('role_id', 1)->count(),
-            'User' => Account::where('role_id', 2)->count(),
-        ];
-        
-        $query = Account::with('role');
+        return view('auth.login');
+    }
 
-        // Search
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+    /**
+     * Menangani proses login.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            
+            // Redirect berdasarkan role
+            $user = Auth::user();
+            if ($user->isDeveloper()) {
+                return redirect()->intended(route('developer.dashboard'));
+            }
+            
+            return redirect()->intended(route('user.dashboard'));
         }
-        
-        $accounts = $query->paginate(10);
-        
-        return view('developer.kelola-akun', compact('accounts', 'userCounts'));
+
+        return back()->withErrors([
+            'email' => 'Email atau kata sandi yang Anda masukkan salah.',
+        ])->onlyInput('email');
+    }
+
+   
+    /**
+     * Menangani proses logout.
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
     
     /**
-     * Menyimpan user baru dari modal.
+     * Redirect ke Google untuk otentikasi.
      */
-    public function store(Request $request)
+    public function redirectToGoogle()
     {
-        $request->validate([
-            'Name' => 'required|string|max:255',
-            'Email' => 'required|email|unique:accounts,email',
-            'Telp_Num' => 'nullable|string',
-            'ID_Role' => 'required|exists:roles,id',
-        ]);
-        
-        Account::create([
-            'name' => $request->Name,
-            'username' => strtolower(explode('@', $request->Email)[0] . rand(10, 99)), // Membuat username dari email
-            'email' => $request->Email,
-            'phone' => $request->Telp_Num,
-            'role_id' => $request->ID_Role,
-            'password' => Hash::make('password'), // Memberi password default
-        ]);
-
-        return back()->with('success', 'User baru berhasil ditambahkan.');
+        return Socialite::driver('google')->redirect();
     }
 
     /**
-     * Mengupdate akun dari inline edit (AJAX).
+     * Menangani callback dari Google.
      */
-    public function update(Request $request, Account $account)
+    public function handleGoogleCallback()
     {
-        $data = $request->validate([
-            'Name' => 'required|string|max:255',
-            'Email' => [
-                'required',
-                'email',
-                Rule::unique('accounts', 'email')->ignore($account->id),
-            ],
-            'Telp_Num' => 'nullable|string',
-            'ID_Role' => 'required|exists:roles,id',
-        ]);
-        
-        $account->update([
-            'name' => $data['Name'],
-            'email' => $data['Email'],
-            'phone' => $data['Telp_Num'],
-            'role_id' => $data['ID_Role']
-        ]);
-        
-        return response()->json(['success' => true, 'message' => 'Akun berhasil diperbarui.']);
-    }
+        try {
+            $googleUser = Socialite::driver('google')->user();
 
-    /**
-     * Hapus akun.
-     */
-    public function destroy(Account $account)
-    {
-        // Jangan biarkan user menghapus dirinya sendiri
-        if ($account->id === Auth::id()) {
-            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+            $userRole = Role::where('name', 'user')->first();
+
+            $account = Account::updateOrCreate(
+                ['email' => $googleUser->getEmail()],
+                [
+                    'name' => $googleUser->getName(),
+                    'username' => str_replace(' ', '', strtolower($googleUser->getName())) . rand(10,99),
+                    'password' => Hash::make(uniqid()), // Generate random password
+                    'role_id' => $userRole->id,
+                ]
+            );
+
+            Auth::login($account, true);
+            return redirect()->route('user.dashboard');
+
+        } catch (\Exception $e) {
+            // Perbaikan: gunakan nama route 'login' yang benar
+            return redirect()->route('login')->withErrors(['system' => 'Gagal melakukan otentikasi dengan Google.']);
         }
-
-        $account->delete();
-        return back()->with('success', 'Akun berhasil dihapus.');
     }
 }

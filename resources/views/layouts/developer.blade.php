@@ -7,23 +7,20 @@
     @vite('resources/css/app.css')
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body class="bg-[#F5F6FA]" x-data=""> {{-- x-data kosong karena state diatur di Alpine.store --}}
-
-    {{-- Logika untuk mengatur 'open' dan 'isMobile' di Alpine.js Store --}}
+<body class="bg-[#F5F6FA]" x-data="">
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('global', {
-                open: window.innerWidth >= 1024, // Sidebar terbuka secara default di desktop
+                open: window.innerWidth >= 1024, 
                 isMobile: window.innerWidth < 1024
             });
 
-            // Update state saat window di-resize
             window.addEventListener('resize', () => {
                 Alpine.store('global').isMobile = window.innerWidth < 1024;
                 if (!Alpine.store('global').isMobile) {
-                    Alpine.store('global').open = true; // Sidebar terbuka di desktop
+                    Alpine.store('global').open = true; 
                 } else {
-                    Alpine.store('global').open = false; // Sidebar tertutup di mobile
+                    Alpine.store('global').open = false; 
                 }
             });
         });
@@ -33,7 +30,6 @@
          :class="{ 'w-64': $store.global.open, 'w-0 lg:w-20': !$store.global.open }"
          x-show="$store.global.open || !$store.global.isMobile">
 
-        {{-- Tombol Toggle Sidebar (hanya di desktop, disembunyikan di mobile) --}}
         <button @click="$store.global.open = !$store.global.open"
                 class="absolute -right-3 top-6 bg-white rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-100 z-10 hidden lg:block">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,14 +45,12 @@
 
     <div :class="{ 'lg:ml-64': $store.global.open, 'lg:ml-20': !$store.global.open, 'ml-0': $store.global.isMobile }" class="transition-all duration-300">
         <nav class="h-16 bg-white shadow flex items-center justify-between px-6">
-            {{-- Tombol Hamburger Menu (Hanya di mode HP) --}}
             <button @click="$store.global.open = !$store.global.open" class="lg:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                 <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
             </button>
 
-            {{-- Dropdown profil --}}
             <div x-data="{ dropdownOpen: false }" class="relative ml-auto">
                 <button @click="dropdownOpen = !dropdownOpen" class="flex items-center space-x-3 focus:outline-none">
                     <div class="text-right hidden md:block">
@@ -84,8 +78,7 @@
                     </a>
 
                     <div class="border-t border-gray-100"></div>
-
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" class="logout-form">
                         @csrf
                         <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             Logout
@@ -101,5 +94,19 @@
     </div>
 
     @stack('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const logoutForm = document.querySelector('.logout-form');
+            if (logoutForm) {
+                logoutForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    const userConfirmed = confirm('Apakah Anda yakin ingin logout?');
+                    if (userConfirmed) {
+                        this.submit();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage; 
 
 class Ticket extends Model
 {
@@ -20,11 +21,6 @@ class Ticket extends Model
         'department_id',
     ];
 
-    // --- RELASI ---
-
-    /**
-     * Mendapatkan akun yang membuat tiket ini.
-     */
     public function author()
     {
         return $this->belongsTo(Account::class, 'account_id');
@@ -73,5 +69,18 @@ class Ticket extends Model
     public function knowledgeBaseArticle()
     {
         return $this->hasOne(KnowledgeBase::class, 'source_ticket_id');
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($ticket) {
+
+            foreach ($ticket->attachments as $attachment) {
+                Storage::disk('public')->delete($attachment->path);
+            }
+
+            $ticket->attachments()->delete();
+        });
     }
 }

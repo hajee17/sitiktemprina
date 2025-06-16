@@ -1,7 +1,7 @@
 @extends('layouts.developer')
 
 @section('content')
-{{-- Menghilangkan div terluar yang memiliki bg-gray-50 dan min-h-screen --}}
+
 <div class="p-6 space-y-6"> {{-- Tambahkan p-6 dan space-y-6 untuk jarak antar bagian --}}
 
     <h1 class="text-2xl font-bold text-gray-800">Tiket Saya</h1>

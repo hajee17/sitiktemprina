@@ -1,11 +1,10 @@
 @extends('layouts.developer')
 
 @section('content')
-{{-- Menggunakan Alpine.js untuk state management modal --}}
+
 <div class="px-8 py-6 bg-gray-50 min-h-screen" x-data="{ showModal: false, ticket: null }">
     <h1 class="text-2xl font-semibold mb-6">Ambil Tiket yang Tersedia</h1>
 
-    {{-- Filter dan Search Form --}}
     <form action="{{ route('developer.tickets.index') }}" method="GET" class="mb-6 bg-white p-4 rounded-lg shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <input 
@@ -25,7 +24,6 @@
         </div>
     </form>
 
-    {{-- List Tiket Tersedia --}}
     @if($tickets->isEmpty())
         <div class="bg-white p-8 rounded-lg text-center shadow-sm">
             <p class="text-gray-500">Tidak ada tiket yang tersedia saat ini. Kerja bagus!</p>

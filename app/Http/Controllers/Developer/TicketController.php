@@ -126,59 +126,64 @@ class TicketController extends Controller
      * Update tiket dari modal.
      */
     public function update(Request $request, Ticket $ticket)
-    {
-        // ... (otorisasi & validasi dari sebelumnya) ...
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'status_id' => 'required|exists:ticket_statuses,id',
-            'comment' => 'nullable|string',
-            'create_knowledge_base' => 'nullable|boolean',
-            'redirect_to' => 'nullable|string',
-        ]);
+{
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'status_id' => 'required|exists:ticket_statuses,id',
+        'comment' => 'nullable|string',
+        'comment_file' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf|max:5120',
+        'create_knowledge_base' => 'nullable|boolean',
+    ]);
 
-        // Simpan komentar terlebih dahulu jika ada
-        if ($request->filled('comment')) {
-            $ticket->comments()->create([
-                'account_id' => Auth::id(),
-                'message' => $validated['comment'],
-            ]);
+    // Logika untuk menyimpan komentar (ini tidak berubah)
+    if ($request->filled('comment') || $request->hasFile('comment_file')) {
+        $filePath = null;
+        if ($request->hasFile('comment_file')) {
+            $filePath = $request->file('comment_file')->store('ticket_comments', 'public');
         }
+        $ticket->comments()->create([
+            'account_id' => Auth::id(),
+            'message' => $validated['comment'] ?? '',
+            'file_path' => $filePath,
+        ]);
+    }
 
-        // Update status tiket
-        $ticket->status_id = $validated['status_id'];
-        $ticket->save();
+    $ticket->status_id = $validated['status_id'];
+    $ticket->save();
 
-        // --- LOGIKA CASE-BASED REASONING (CBR) ---
-        $isClosing = \App\Models\TicketStatus::find($validated['status_id'])->name === 'Closed';
-        
-        if ($isClosing && $request->boolean('create_knowledge_base') && $request->filled('comment')) {
-            // Cek apakah sudah ada KB dari tiket ini untuk mencegah duplikat
-            if (!$ticket->knowledgeBaseArticle()->exists()) {
-                
-                // Cari atau buat tag baru berdasarkan kategori tiket
+    $isClosing = \App\Models\TicketStatus::find($validated['status_id'])->name === 'Closed';
+
+    // Logika pembuatan KB disederhanakan (ini tidak berubah)
+    if ($isClosing && $request->boolean('create_knowledge_base')) {
+        if (!$ticket->knowledgeBaseArticle()->exists()) {
+            $solutionContent = $validated['comment'] ?? $ticket->description;
+            if (!empty(trim($solutionContent))) {
                 $tag = KnowledgeTag::firstOrCreate(['name' => $ticket->category->name]);
                 
-                // Buat artikel Knowledge Base baru
                 $kb = KnowledgeBase::create([
                     'title' => $ticket->title,
-                    'content' => $validated['comment'], // Konten diambil dari komentar solusi
+                    'content' => $solutionContent,
                     'type' => 'blog',
                     'account_id' => Auth::id(),
-                    'source_ticket_id' => $ticket->id, // Tautkan ke tiket sumber
+                    'source_ticket_id' => $ticket->id,
                 ]);
                 
-                // Lampirkan tag ke artikel KB
                 $kb->tags()->sync([$tag->id]);
             }
         }
-
-        if ($validated['redirect_to'] === 'kelola_ticket') {
-    return redirect()->route('developer.kelola-ticket')->with('success', 'Tiket berhasil diperbarui.');
     }
 
-    return redirect()->route('developer.tickets.show', $ticket->id)->with('success', 'Tiket berhasil diperbarui.');
-
+    if ($isClosing) {
+        // Arahkan ke halaman daftar tiket aktif (myticket), di mana tiket ini sudah tidak ada lagi.
+        return redirect()->route('developer.myticket')
+                         ->with('success', 'Tiket #' . $ticket->id . ' telah berhasil ditutup.');
     }
+
+    // Jika statusnya lain, tetap di halaman detail tiket.
+    return redirect()->route('developer.tickets.show', $ticket->id)
+                     ->with('success', 'Tiket berhasil diperbarui.');
+
+}
     
     /**
      * Hapus tiket.
