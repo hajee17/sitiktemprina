@@ -6,29 +6,97 @@
     <title>@yield('title', 'Developer Dashboard')</title>
     @vite('resources/css/app.css')
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        /* Optional: Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Custom styles for mobile sidebar slide-in/out */
+        .sidebar-mobile-closed {
+            transform: translateX(-100%);
+        }
+        .sidebar-mobile-open {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 <body class="bg-[#F5F6FA]" x-data="">
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('global', {
-                open: window.innerWidth >= 1024, 
+                open: window.innerWidth >= 1024,
                 isMobile: window.innerWidth < 1024
             });
 
             window.addEventListener('resize', () => {
                 Alpine.store('global').isMobile = window.innerWidth < 1024;
                 if (!Alpine.store('global').isMobile) {
-                    Alpine.store('global').open = true; 
+                    Alpine.store('global').open = true;
+                    document.body.style.overflow = 'auto'; // Ensure scroll is enabled on desktop
                 } else {
-                    Alpine.store('global').open = false; 
+                    Alpine.store('global').open = false; // Always close sidebar on mobile resize
+                    document.body.style.overflow = 'auto'; // Ensure scroll is auto on mobile resize
+                }
+            });
+
+            // Handle initial state for body overflow on page load
+            if (Alpine.store('global').isMobile && Alpine.store('global').open) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+
+            // Watch for changes in sidebar open state on mobile to control body overflow
+            Alpine.effect(() => {
+                if (Alpine.store('global').isMobile) {
+                    if (Alpine.store('global').open) {
+                        document.body.style.overflow = 'hidden'; // Disable scroll when sidebar is open on mobile
+                    } else {
+                        document.body.style.overflow = 'auto'; // Enable scroll when sidebar is closed on mobile
+                    }
+                } else {
+                    document.body.style.overflow = 'auto'; // Always auto scroll on desktop
                 }
             });
         });
     </script>
 
-    <div class="fixed top-0 left-0 h-full bg-white shadow-lg z-40 transition-all duration-300 ease-in-out"
-         :class="{ 'w-64': $store.global.open, 'w-0 lg:w-20': !$store.global.open }"
-         x-show="$store.global.open || !$store.global.isMobile">
+    {{-- Overlay untuk mobile --}}
+    <div x-show="$store.global.open && $store.global.isMobile"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="$store.global.open = false"
+         class="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden">
+    </div>
+
+    {{-- Sidebar Container --}}
+    <div class="fixed top-0 left-0 h-full bg-white shadow-lg z-40 transition-transform duration-300 ease-in-out"
+         :class="{
+             'w-64': $store.global.open && !$store.global.isMobile, // Desktop open
+             'w-20 hidden lg:block': !$store.global.open && !$store.global.isMobile, /* Desktop closed */
+             'w-full max-w-[80vw]': $store.global.open && $store.global.isMobile, /* Mobile open - PERUBAHAN DI SINI */
+             'w-0': !$store.global.open && $store.global.isMobile, /* Mobile closed */
+             'sidebar-mobile-open': $store.global.open && $store.global.isMobile, /* Mobile open - slide in */
+             'sidebar-mobile-closed': !$store.global.open && $store.global.isMobile /* Mobile closed - slide out */
+         }"
+         x-show="$store.global.open || !$store.global.isMobile"
+         @click.outside="$store.global.isMobile && $store.global.open ? $store.global.open = false : null">
 
         <button @click="$store.global.open = !$store.global.open"
                 class="absolute -right-3 top-6 bg-white rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-100 z-10 hidden lg:block">
@@ -41,9 +109,13 @@
         @include('components.sidebar')
     </div>
 
-    <div x-show="$store.global.open && $store.global.isMobile" class="fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden" @click="$store.global.open = false"></div>
-
-    <div :class="{ 'lg:ml-64': $store.global.open, 'lg:ml-20': !$store.global.open, 'ml-0': $store.global.isMobile }" class="transition-all duration-300">
+    {{-- Main Content Area --}}
+    <div :class="{
+             'lg:ml-64': $store.global.open && !$store.global.isMobile,
+             'lg:ml-20': !$store.global.open && !$store.global.isMobile,
+             'ml-0': $store.global.isMobile && !$store.global.open
+         }"
+         class="flex-1 flex flex-col transition-all duration-300 ease-in-out">
         <nav class="h-16 bg-white shadow flex items-center justify-between px-6">
             <button @click="$store.global.open = !$store.global.open" class="lg:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
                 <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

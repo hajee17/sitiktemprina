@@ -10,24 +10,32 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+
 class KnowledgeBaseController extends Controller
 {
-    /**
-     * Menampilkan halaman utama manajemen knowledge base.
-     * View: developer/knowledgebase.blade.php
-     */
+
     public function index(Request $request)
     {
         $query = KnowledgeBase::with('author', 'tags')->latest();
 
         // Filter dan search jika ada
         if ($request->filled('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $query->where('title', 'like', '%' . $request->search . '%')
+                  ->orWhere('content', 'like', '%' . $request->search . '%');
+        }
+
+        // Filter berdasarkan tag
+        if ($request->filled('tag')) {
+            $tag = $request->tag;
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where('name', $tag);
+            });
         }
 
         $knowledgeBases = $query->paginate(10);
-        
-        return view('developer.knowledgebase', compact('knowledgeBases'));
+        $tags = KnowledgeTag::all(); // Ambil semua tags untuk ditampilkan di view
+
+        return view('developer.knowledgebase', compact('knowledgeBases', 'tags')); // Kirim $tags ke view
     }
 
     /**
@@ -50,9 +58,7 @@ class KnowledgeBaseController extends Controller
             'type' => 'required|in:blog,pdf,video',
             'tags' => 'nullable|array',
             'tags.*' => 'exists:knowledge_tags,id',
-            // Validasi kondisional: 'content' wajib jika tipe adalah blog atau video
             'content' => 'required_if:type,blog,video|nullable|string',
-            // Validasi kondisional: 'file_path' wajib jika tipe adalah pdf
             'file_path' => 'required_if:type,pdf|nullable|file|mimes:pdf|max:10240', // Max 10MB
         ]);
 
@@ -62,7 +68,7 @@ class KnowledgeBaseController extends Controller
 
         if ($request->type === 'pdf') {
             if ($request->hasFile('file_path')) {
-                // Simpan file ke storage/app/public/knowledge_files
+
                 $data['file_path'] = $request->file('file_path')->store('knowledge_files', 'public');
             }
         } else {
@@ -84,18 +90,18 @@ class KnowledgeBaseController extends Controller
     public function edit(KnowledgeBase $knowledgebase)
     {
         if ($knowledgebase->source_ticket_id) {
-            
+
             return redirect()
                 ->route('developer.tickets.show', $knowledgebase->source_ticket_id)
                 ->with('info', 'Artikel ini terhubung ke Tiket #' . $knowledgebase->source_ticket_id . '. Untuk memperbarui konten, silakan tambahkan komentar atau update tiket asli.');
 
         } else {
-            
+
             $tags = KnowledgeTag::all();
             $knowledgebase->load('tags');
-            
+
             return view('developer.knowledgebase-form', [
-                'knowledge' => $knowledgebase, 
+                'knowledge' => $knowledgebase,
                 'tags' => $tags
             ]);
         }
@@ -120,7 +126,7 @@ class KnowledgeBaseController extends Controller
         $dataToUpdate = $request->only('title', 'type');
 
         if ($request->type === 'pdf') {
-            $dataToUpdate['content'] = ''; 
+            $dataToUpdate['content'] = '';
             if ($request->hasFile('file_path')) {
                 if ($knowledgebase->file_path) {
                     Storage::disk('public')->delete($knowledgebase->file_path);
@@ -145,7 +151,6 @@ class KnowledgeBaseController extends Controller
      */
     public function destroy(KnowledgeBase $knowledgebase)
     {
-        // Relasi pivot akan otomatis terhapus karena konfigurasi database
         $knowledgebase->delete();
 
         return redirect()->route('developer.knowledgebase.index')->with('success', 'Artikel berhasil dihapus.');
@@ -153,18 +158,16 @@ class KnowledgeBaseController extends Controller
 
     public function show(KnowledgeBase $knowledgeBase)
     {
-    $sourceTicket = null;
+        $sourceTicket = null;
 
+        if ($knowledgeBase->source_ticket_id) {
+            $sourceTicket = Ticket::with(['author', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author'])
+                ->find($knowledgeBase->source_ticket_id);
+        }
 
-    if ($knowledgeBase->source_ticket_id) {
-        $sourceTicket = Ticket::with(['author', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author'])
-                              ->find($knowledgeBase->source_ticket_id);
-    }
-
-    // Kirim data knowledge base dan (jika ada) data tiket sumber ke view
-    return view('user.knowledgebase-detail', [
-        'knowledge' => $knowledgeBase,
-        'sourceTicket' => $sourceTicket,
-    ]);
+        return view('user.knowledgebase-detail', [
+            'knowledge' => $knowledgeBase,
+            'sourceTicket' => $sourceTicket,
+        ]);
     }
 }

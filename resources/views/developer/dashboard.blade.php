@@ -4,7 +4,6 @@
 <div class="p-6 space-y-6">
     <h1 class="text-2xl font-bold text-gray-800">Dashboard Developer</h1>
 
-    <!-- Statistic Cards -->
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
         @foreach([
             ['title' => 'Prioritas Tinggi (Baru)', 'value' => $highPriorityNew, 'color' => 'bg-red-50 text-red-800'],
@@ -20,9 +19,7 @@
         @endforeach
     </div>
 
-    <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Weekly Ticket Chart -->
         <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Grafik Tiket Mingguan</h2>
             <div class="h-64">
@@ -30,7 +27,6 @@
             </div>
         </div>
 
-        <!-- Status Distribution Chart -->
         <div class="bg-white p-6 rounded-xl shadow-sm">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Distribusi Status Tiket</h2>
             <div class="h-64">
@@ -42,7 +38,6 @@
         </div>
     </div>
 
-    <!-- Recent Tickets Table -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100">
             <h2 class="text-lg font-semibold text-gray-800">Tiket Masuk (Terbaru)</h2>
@@ -92,7 +87,6 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            {{-- PERBAIKAN DI SINI --}}
                             <a href="{{ route('developer.tickets.show', ['ticket' => $ticket->id]) }}" class="text-indigo-600 hover:text-indigo-900">Lihat Detail</a>
                         </td>
                     </tr>
@@ -110,8 +104,6 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // ... (kode Javascript untuk chart tidak berubah)
-    // Weekly Ticket Chart
     const weeklyCtx = document.getElementById('weeklyTicketChart').getContext('2d');
     new Chart(weeklyCtx, {
         type: 'bar',
@@ -151,7 +143,6 @@
         }
     });
 
-    // Status Distribution Chart
     const statusCtx = document.getElementById('statusDistributionChart').getContext('2d');
     new Chart(statusCtx, {
         type: 'doughnut',
@@ -160,14 +151,16 @@
             datasets: [{
                 data: @json(array_values($statusDistribution)),
                 backgroundColor: [
-                    'rgba(59, 130, 246, 0.7)',
-                    'rgba(234, 179, 8, 0.7)',
-                    'rgba(16, 185, 129, 0.7)'
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(249, 115, 22, 0.8)',
+                    'rgba(34, 197, 94, 0.8)'
                 ],
                 borderColor: [
+                    'rgba(239, 68, 68, 1)',
                     'rgba(59, 130, 246, 1)',
-                    'rgba(234, 179, 8, 1)',
-                    'rgba(16, 185, 129, 1)'
+                    'rgba(249, 115, 22, 1)',
+                    'rgba(34, 197, 94, 1)'
                 ],
                 borderWidth: 1,
                 hoverOffset: 8

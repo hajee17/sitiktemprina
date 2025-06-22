@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="p-6 space-y-6"> {{-- Tambahkan p-6 dan space-y-6 untuk jarak antar bagian --}}
+<div class="px-8 py-6 bg-gray-50 min-h-screen"> {{-- Sesuaikan background dan padding luar --}}
 
     <h1 class="text-2xl font-bold text-gray-800">Tiket Saya</h1>
 
@@ -12,31 +12,38 @@
         </div>
     @endif
 
-    <div class="bg-white p-4 rounded-lg shadow-sm"> {{-- Hapus mb-6 karena space-y-6 akan menangani jarak --}}
-        <form action="{{ route('developer.myticket') }}" method="GET">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID atau Judul..." class="md:col-span-2 w-full border-gray-300 rounded-md focus:ring-blue-500">
-                <select name="priority_id" class="w-full border-gray-300 rounded-md focus:ring-blue-500">
-                    <option value="">Semua Prioritas</option>
-                    @foreach($priorities as $priority)
-                        <option value="{{ $priority->id }}" {{ request('priority_id') == $priority->id ? 'selected' : '' }}>{{ $priority->name }}</option>
-                    @endforeach
-                </select>
-                <select name="status_id" class="w-full border-gray-300 rounded-md focus:ring-blue-500">
-                    <option value="">Semua Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="mt-4 flex flex-col sm:flex-row justify-end gap-2">
-                <a href="{{ route('developer.myticket') }}" class="px-4 py-2 text-sm font-medium text-gray-700 text-center rounded-md hover:bg-gray-100 w-full sm:w-auto">Reset</a>
-                <button type="submit" class="px-6 py-2 bg-black text-white rounded-md font-semibold text-sm hover:bg-gray-800 w-full sm:w-auto">Terapkan Filter</button>
-            </div>
-        </form>
-    </div>
+    {{-- Form Pencarian dan Filter dengan desain referensi "Ambil Tiket" --}}
+    <form action="{{ route('developer.myticket') }}" method="GET" class="mb-6 bg-white p-4 rounded-lg shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4"> {{-- PERBAIKAN DI SINI: md:grid-cols-5 --}}
+            {{-- Input Pencarian --}}
+            <input
+                type="text"
+                name="search"
+                placeholder="Cari ID atau Judul..."
+                class="w-full px-4 py-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 md:col-span-2" {{-- md:col-span-2 agar tetap lebar --}}
+                value="{{ request('search') }}"
+            >
+            {{-- Dropdown Filter Prioritas --}}
+            <select name="priority_id" class="w-full px-4 py-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Prioritas</option>
+                @foreach($priorities as $priority)
+                    <option value="{{ $priority->id }}" {{ request('priority_id') == $priority->id ? 'selected' : '' }}>{{ $priority->name }}</option>
+                @endforeach
+            </select>
+            {{-- Dropdown Filter Status --}}
+            <select name="status_id" class="w-full px-4 py-2 rounded-md border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="">Semua Status</option>
+                @foreach($statuses as $status)
+                    <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
+                @endforeach
+            </select>
+            {{-- Tombol Cari & Filter --}}
+            <button type="submit" class="w-full bg-black text-white px-5 py-2 rounded-md font-medium hover:bg-gray-800">Cari & Filter</button>
+        </div>
+    </form>
 
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden"> {{-- Hapus mb-6 karena space-y-6 akan menangani jarak --}}
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -58,8 +65,26 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ optional($ticket->author)->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold {{ optional($ticket->priority)->name == 'Tinggi' ? 'text-red-600' : (optional($ticket->priority)->name == 'Sedang' ? 'text-yellow-600' : 'text-green-600') }}">{{ optional($ticket->priority)->name ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ optional($ticket->status)->name == 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800' }}">
-                                {{ optional($ticket->status)->name ?? 'N/A' }}
+                            @php
+                                $statusName = optional($ticket->status)->name;
+                                $statusClass = 'bg-gray-100 text-gray-800'; // Default
+                                switch ($statusName) {
+                                    case 'Open':
+                                        $statusClass = 'bg-blue-100 text-blue-800'; // Matches Dashboard "Baru"
+                                        break;
+                                    case 'In Progress':
+                                        $statusClass = 'bg-orange-100 text-orange-800'; // Matches Dashboard "Diproses"
+                                        break;
+                                    case 'On Hold':
+                                        $statusClass = 'bg-yellow-100 text-yellow-800'; // Standard for On Hold
+                                        break;
+                                    case 'Closed':
+                                        $statusClass = 'bg-green-100 text-green-800'; // Matches Dashboard "Selesai"
+                                        break;
+                                }
+                            @endphp
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
+                                {{ $statusName ?? 'N/A' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $ticket->created_at->format('d M Y') }}</td>

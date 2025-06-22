@@ -9,7 +9,7 @@ use App\Http\Controllers\User\KnowledgeBaseController as UserKnowledgeBaseContro
 use App\Http\Controllers\User\PageController as UserPageController; 
 use App\Http\Controllers\Developer\DashboardController as DeveloperDashboardController;
 use App\Http\Controllers\Developer\TicketController as DeveloperTicketController;
-use App\Http\Controllers\Developer\AccountController as DeveloperAccountController;
+use App\Http\Controllers\Developer\AccountController;
 use App\Http\Controllers\Developer\KnowledgeBaseController as DeveloperKnowledgeBaseController;
 use App\Http\Controllers\TicketCommentController;
 use App\Http\Controllers\Developer\TagController;
@@ -79,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::resource('tags', TagController::class)->except(['show', 'create', 'edit']);
 
-        Route::resource('akun', DeveloperAccountController::class);
+        Route::resource('akun', AccountController::class);
         
         Route::post('/tickets/{ticket}/comments', [TicketCommentController::class, 'store'])->name('comments.store');
         Route::resource('knowledgebase', DeveloperKnowledgeBaseController::class);
