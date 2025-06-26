@@ -126,10 +126,10 @@ Buka browser dan akses: [http://localhost:8000](http://localhost:8000)
 
 Jika menggunakan file `.sql`, Anda dapat login dengan akun berikut:
 
-| Peran      | Email             | Password   |
-|------------|-------------------|------------|
-| Developer  | dev@example.com   | password   |
-| User       | user@example.com  | password   |
+| Peran      | Email             | Password      |
+|------------|-------------------|---------------|
+| Developer  | dev@example.com   | password123   |
+| User       | user@example.com  | userpass      |
 
 ---
 
