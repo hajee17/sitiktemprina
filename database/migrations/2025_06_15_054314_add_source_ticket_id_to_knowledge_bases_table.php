@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('knowledge_bases', function (Blueprint $table) {
-            // Kolom untuk menautkan ke tiket asal. Boleh null.
             $table->foreignId('source_ticket_id')->nullable()->constrained('tickets')->onDelete('set null');
         });
     }

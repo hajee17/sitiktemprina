@@ -9,24 +9,19 @@ return [
     | memprioritaskan tiket baru. Skor yang lebih tinggi berarti prioritas lebih tinggi.
     */
 
-    // Bobot berdasarkan Jabatan/Posisi Pengguna
-    // Kunci (key) adalah ID dari tabel 'positions'
     'positions' => [
         3 => 30, // Manager
         2 => 20, // Supervisor
         1 => 10, // Staff
     ],
 
-    // Bobot berdasarkan Unit Bisnis Strategis (SBU)
-    // Kunci (key) adalah ID dari tabel 'sbus'
     'sbus' => [
         2 => 40, // SBU Produksi (Sangat Kritis)
         1 => 25, // SBU Pengiriman (Penting)
         3 => 15, // SBU Pengemasan (Cukup Penting)
     ],
 
-    // Bobot berdasarkan Kata Kunci di dalam judul atau deskripsi tiket
-    // Sistem akan mencari kata kunci ini (tidak case-sensitive)
+
     'keywords' => [
         // Kritis Tinggi
         'mati' => 50,
@@ -34,7 +29,7 @@ return [
         'tidak bisa' => 50,
         'error' => 45,
         'server' => 45,
-        'produksi' => 45, // Kata "produksi" sendiri sudah penting
+        'produksi' => 45,
 
         // Cukup Penting
         'lambat' => 30,
@@ -58,8 +53,7 @@ return [
     | ID 1: Tinggi, ID 2: Sedang, ID 3: Rendah
     */
     'thresholds' => [
-        'tinggi' => 70,  // Jika skor > 70, prioritasnya Tinggi
-        'sedang' => 35,  // Jika skor > 35, prioritasnya Sedang
-        // Jika tidak, prioritasnya Rendah
+        'tinggi' => 70,
+        'sedang' => 35,
     ],
 ];

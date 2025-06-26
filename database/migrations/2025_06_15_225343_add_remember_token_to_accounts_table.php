@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('accounts', function (Blueprint $table) {
-            // Tambahkan baris ini
             $table->rememberToken();
         });
     }
@@ -23,7 +22,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('accounts', function (Blueprint $table) {
-            // Tambahkan baris ini untuk bisa di-rollback
             $table->dropRememberToken();
     });
 }

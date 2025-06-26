@@ -4,7 +4,6 @@
 
 @section('content')
 
-<!-- Hero Section -->
 <div class="w-full px-4 md:px-12 pt-5 pb-5">
     <div class="bg-cover bg-center bg-no-repeat rounded-x2 p-8 md:p-12"
          style="background-image: url('{{ asset('images/frame21.png') }}');">
@@ -17,11 +16,10 @@
     </div>
 </div>
 
-<!-- Status Tiket Section -->
 <div class="container mx-auto text-center my-12">
     <h3 class="text-2xl font-semibold text-gray-800">Cek Status Tiket Anda</h3>
     <p class="text-gray-600 mb-4">Masukkan nomor tiket untuk melacak tiket Anda!</p>
-    {{-- Form ini sekarang akan berfungsi --}}
+
     <form id="trackTicketForm" class="flex justify-center">
         <input type="text" id="ticketIdInput" placeholder="Contoh : 51" class="w-2/5 p-3 border rounded-l-lg focus:outline-none">
         <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-r-lg">
@@ -30,7 +28,6 @@
     </form>
 </div>
 
-<!-- Statistik Tiket (menggunakan variabel dari controller) -->
 <div class="container mx-auto flex flex-wrap justify-center gap-6">
     <div class="bg-white p-6 shadow-lg rounded-lg w-64 text-center">
         <img src="{{ asset('images/icon1.png') }}" alt="Total Tiket" class="mx-auto mb-3">
@@ -49,7 +46,6 @@
     </div>
 </div>
 
-<!-- Kategori SITIK -->
 <div id="kategori" class="container mx-auto my-12 text-center">
     <h3 class="text-2xl font-semibold text-gray-800 mb-6">Kategori SITIK</h3>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -92,7 +88,6 @@
         e.preventDefault();
         const ticketId = document.getElementById('ticketIdInput').value;
         if (ticketId) {
-            // URL akan menjadi: http://domain.com/user/tickets/51
             const baseUrl = "{{ route('user.tickets.index') }}";
             window.location.href = `${baseUrl}/${ticketId}`;
         } else {

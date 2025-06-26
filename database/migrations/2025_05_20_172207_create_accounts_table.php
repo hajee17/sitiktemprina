@@ -24,7 +24,6 @@ return new class extends Migration
         });
 
         DB::transaction(function () {
-            // Add unique constraints
             DB::statement('ALTER TABLE accounts ADD CONSTRAINT accounts_username_unique UNIQUE (username)');
             DB::statement('ALTER TABLE accounts ADD CONSTRAINT accounts_email_unique UNIQUE (email)');
             

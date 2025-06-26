@@ -34,7 +34,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
             
-            // Redirect berdasarkan role
             $user = Auth::user();
             if ($user->isDeveloper()) {
                 return redirect()->intended(route('developer.dashboard'));
@@ -64,7 +63,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'      => ['required', 'string', 'max:255'],
             'email'     => ['required', 'string', 'email', 'max:255', 'unique:accounts,email'],
-            'telp_num'  => ['required', 'string', 'max:20'], // disesuaikan menjadi snake_case
+            'telp_num'  => ['required', 'string', 'max:20'],
             'password'  => ['required', 'string', 'min:8', 'confirmed'],
             'terms'     => ['accepted'],
         ]);
@@ -127,7 +126,7 @@ class AuthController extends Controller
                 [
                     'name' => $googleUser->getName(),
                     'username' => str_replace(' ', '', strtolower($googleUser->getName())) . rand(10,99),
-                    'password' => Hash::make(uniqid()), // Generate random password
+                    'password' => Hash::make(uniqid()),
                     'role_id' => $userRole->id,
                 ]
             );

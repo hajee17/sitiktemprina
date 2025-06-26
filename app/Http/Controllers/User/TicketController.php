@@ -37,7 +37,6 @@ class TicketController extends Controller
      */
     public function create()
     {
-        // Ambil data untuk dropdown dari database
         $departments = Department::pluck('name', 'id');
         $positions = Position::pluck('name', 'id');
         $categories = TicketCategory::pluck('name', 'id');
@@ -80,13 +79,11 @@ class TicketController extends Controller
             'sbu_id' => $validatedData['sbu_id'],
             'department_id' => $validatedData['department_id'],
             'category_id' => $validatedData['category_id'],
-            'priority_id' => $predictedPriorityId, // <-- Menggunakan hasil prediksi
+            'priority_id' => $predictedPriorityId, 
         ]);
 
-        // Menangani upload file lampiran jika ada
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $file) {
-                // Simpan file ke storage/app/public/attachments
                 $path = $file->store('attachments', 'public');
                 TicketAttachment::create([
                     'ticket_id' => $ticket->id,
@@ -108,14 +105,11 @@ class TicketController extends Controller
         if ($ticket->account_id !== Auth::id() && !Auth::user()->isDeveloper()) {
             abort(403, 'Akses Ditolak');
         }
-        
-        // Memuat relasi yang diperlukan untuk tiket
+
         $ticket->load('status', 'category', 'priority', 'attachments', 'author', 'comments.author');
-        
-        // MEMANGGIL MODEL: Dapatkan rekomendasi artikel
+
         $recommendations = $recommender->getRecommendations($ticket);
-        
-        // Kirim data tiket dan rekomendasi ke view
+
         return view('user.LacakTicket', compact('ticket', 'recommendations'));
     }
 

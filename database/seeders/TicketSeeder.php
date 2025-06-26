@@ -10,7 +10,6 @@ class TicketSeeder extends Seeder
 {
     public function run(): void
     {
-        // Buat 50 tiket, dan untuk setiap tiket, buat 3 komentar
         Ticket::factory()
             ->count(50)
             ->has(TicketComment::factory()->count(3), 'comments')

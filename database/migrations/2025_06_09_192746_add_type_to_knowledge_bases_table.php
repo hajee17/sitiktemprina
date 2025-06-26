@@ -12,8 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('knowledge_bases', function (Blueprint $table) {
-            // Menambahkan kolom 'type' untuk menyimpan jenis konten (blog, pdf, video)
-            // Defaultnya adalah 'blog'
             $table->string('type')->default('blog')->after('content');
         });
     }

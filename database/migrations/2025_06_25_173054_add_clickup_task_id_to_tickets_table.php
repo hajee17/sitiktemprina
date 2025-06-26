@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            // Tambahkan kolom untuk menyimpan ID tugas ClickUp
             $table->string('clickup_task_id')->nullable()->unique()->after('assignee_id');
         });
     }
@@ -23,7 +22,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tickets', function (Blueprint $table) {
-            // Hapus kolom jika migrasi di-rollback
             $table->dropColumn('clickup_task_id');
         });
     }

@@ -28,7 +28,7 @@
 
     {{-- Form Pencarian dan Filter --}}
     <form action="{{ route('developer.kelola-ticket') }}" method="GET" class="mb-6 bg-white p-4 rounded-lg shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4"> {{-- PERBAIKAN DI SINI: md:grid-cols-5 --}}
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             {{-- Input Pencarian --}}
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID, Judul, atau Pelapor..."
                    class="md:col-span-2 w-full px-4 py-2 border-gray-300 rounded-md focus:ring-blue-500">

@@ -46,8 +46,6 @@ class CheckClickUpUpdates extends Command
     {
         $this->info("Memeriksa pembaruan dari ClickUp...");
 
-        // 1. Dapatkan timestamp kapan terakhir kali kita cek.
-        // Jika belum pernah, default-nya adalah 10 menit yang lalu.
         $lastCheckedTimestamp = Cache::get('clickup_last_checked_timestamp', now()->subMinutes(10)->timestamp * 1000);
 
         $listId = env('CLICKUP_DEFAULT_LIST_ID');
@@ -55,8 +53,7 @@ class CheckClickUpUpdates extends Command
             $this->error("CLICKUP_DEFAULT_LIST_ID tidak diatur di file .env");
             return 1;
         }
-        
-        // 2. Panggil API untuk mendapatkan semua tugas yang diperbarui sejak pengecekan terakhir.
+
         $updatedTasks = $this->clickUpApi->getUpdatedTasks($listId, $lastCheckedTimestamp);
 
         if ($updatedTasks === null) {
@@ -69,7 +66,7 @@ class CheckClickUpUpdates extends Command
         } else {
             $this->info("Ditemukan " . count($updatedTasks) . " tugas yang diperbarui. Memulai sinkronisasi...");
             foreach ($updatedTasks as $task) {
-                // Cari tiket lokal berdasarkan clickup_task_id
+
                 $ticket = Ticket::where('clickup_task_id', $task['id'])->first();
                 if ($ticket) {
                     $this->syncTaskData($ticket, $task);
@@ -77,8 +74,7 @@ class CheckClickUpUpdates extends Command
             }
             $this->info("Sinkronisasi selesai.");
         }
-        
-        // 3. Simpan timestamp saat ini (sedikit dikurangi untuk buffer) untuk pengecekan berikutnya.
+
         Cache::put('clickup_last_checked_timestamp', now()->subSeconds(30)->timestamp * 1000, now()->addDay());
 
         return 0;
@@ -91,10 +87,8 @@ class CheckClickUpUpdates extends Command
     {
         $isUpdated = false;
 
-        // --- Sinkronisasi Status ---
         if (isset($taskData['status']['status'])) {
             $newStatusName = $taskData['status']['status'];
-            // Gunakan helper yang sudah kita buat di ClickUpSyncService
             $localStatusId = $this->clickUpSync->getStatusIdByName($newStatusName);
             
             if ($localStatusId !== null && $ticket->status_id != $localStatusId) {
@@ -104,7 +98,6 @@ class CheckClickUpUpdates extends Command
             }
         }
         
-        // --- Anda bisa menambahkan logika sinkronisasi lain di sini (misal: prioritas, nama tugas, dll) ---
 
         if ($isUpdated) {
             $ticket->save();

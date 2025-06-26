@@ -24,13 +24,10 @@ class AccountFactory extends Factory
             'name' => fake()->name(),
             'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
-            'password' => Hash::make('password'), // default password
+            'password' => Hash::make('password'),
             'phone' => fake()->phoneNumber(),
             'address' => fake()->address(),
-            'role_id' => Role::where('name', 'user')->first()->id, // Default role
-            // Anda bisa tambahkan ini jika ingin mengisinya secara acak
-            // 'position_id' => Position::inRandomOrder()->first()->id,
-            // 'department_id' => Department::inRandomOrder()->first()->id,
+            'role_id' => Role::where('name', 'user')->first()->id,
         ];
     }
 }

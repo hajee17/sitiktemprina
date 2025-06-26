@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Ticket;
 use App\Models\KnowledgeBase;
 use App\Models\TicketComment;
-use App\Models\Account; // Pastikan model Account di-import
+use App\Models\Account;
 use Illuminate\Support\Facades\Log;
 
 class ClickUpSyncService
@@ -20,7 +20,6 @@ class ClickUpSyncService
         $this->clickUpApi = $clickUpApi;
         $this->defaultClickUpListId = env('CLICKUP_DEFAULT_LIST_ID');
 
-        // Mapping status dari sistem Anda ke ClickUp
         $this->clickUpStatusMapping = [
             1 => 'open',
             2 => 'in progress',
@@ -28,7 +27,6 @@ class ClickUpSyncService
             4 => 'closed',
         ];
 
-        // Mapping prioritas dari sistem Anda ke nilai numerik ClickUp
         $this->clickUpPriorityMapping = [
             1 => 2, // 'Tinggi' -> High (2)
             2 => 3, // 'Sedang' -> Normal (3)
@@ -117,14 +115,13 @@ class ClickUpSyncService
      */
     public function getStatusIdByName(string $statusName): ?int
     {
-        // Mencari nama status (case-insensitive) di dalam mapping
+
         $localId = array_search(strtolower($statusName), array_map('strtolower', $this->clickUpStatusMapping));
         return $localId === false ? null : (int)$localId;
     }
     public function syncClickUpToLocal(array $clickUpPayload)
     {
-        // PERBAIKAN: Cek apakah payload berisi 'event' dan 'task_id'.
-        // Jika tidak, kemungkinan ini adalah "test payload" dari tombol Test, jadi kita abaikan.
+
         if (!isset($clickUpPayload['event']) || !isset($clickUpPayload['task_id'])) {
             Log::info('ClickUp Webhook: Menerima payload yang tidak memiliki "event" atau "task_id", kemungkinan "Test Payload". Diabaikan dengan aman.', $clickUpPayload);
             return; // Hentikan eksekusi
@@ -140,7 +137,6 @@ class ClickUpSyncService
             return;
         }
 
-        // Pastikan 'history_items' ada sebelum diakses untuk mencegah error
         if (!isset($clickUpPayload['history_items']) || !is_array($clickUpPayload['history_items']) || empty($clickUpPayload['history_items'])) {
             Log::info("ClickUp Webhook: Event '{$eventType}' untuk Task ID {$taskId} diterima tanpa 'history_items'. Diabaikan.", $clickUpPayload);
             return;

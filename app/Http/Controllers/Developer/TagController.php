@@ -13,7 +13,6 @@ class TagController extends Controller
      */
     public function index()
     {
-        // Mengambil semua tag, diurutkan berdasarkan nama, beserta jumlah artikel yang menggunakannya.
         $tags = KnowledgeTag::withCount('knowledgeBases')->orderBy('name')->get();
         return view('developer.tags.index', compact('tags'));
     }
@@ -38,7 +37,6 @@ class TagController extends Controller
     public function update(Request $request, KnowledgeTag $tag)
     {
         $request->validate([
-            // Memastikan nama unik, kecuali untuk tag itu sendiri
             'name' => 'required|string|max:255|unique:knowledge_tags,name,' . $tag->id,
         ]);
 
@@ -52,7 +50,6 @@ class TagController extends Controller
      */
     public function destroy(KnowledgeTag $tag)
     {
-        // Opsi: Cek jika tag masih digunakan sebelum dihapus
         if ($tag->knowledgeBases()->count() > 0) {
             return back()->with('error', 'Tag tidak dapat dihapus karena masih digunakan oleh artikel.');
         }

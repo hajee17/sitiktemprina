@@ -12,17 +12,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Data untuk kartu statistik
         $newTickets = Ticket::where('status_id', 1)->count(); // Open
         $processedTickets = Ticket::where('status_id', 2)->count(); // In Progress
         $completedTickets = Ticket::where('status_id', 4)->count(); // Closed
         $totalTickets = Ticket::count();
         $highPriorityNew = Ticket::where('status_id', 1)->where('priority_id', 1)->count(); // High Priority
 
-        // Data untuk tabel tiket terbaru
         $latestTickets = Ticket::with(['priority', 'status'])->latest()->take(5)->get();
 
-        // Data untuk grafik mingguan
         $startOfWeek = Carbon::now()->startOfWeek();
         $endOfWeek = Carbon::now()->endOfWeek();
         $weeklyDataRaw = Ticket::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
@@ -41,7 +38,6 @@ class DashboardController extends Controller
             $weeklyData[] = $weeklyDataRaw->get($dayString)->count ?? 0;
         }
 
-        // Data untuk grafik distribusi status
         $statusDistribution = Ticket::select('status_id', DB::raw('count(*) as count'))
             ->with('status')
             ->groupBy('status_id')

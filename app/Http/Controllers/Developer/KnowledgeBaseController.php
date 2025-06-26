@@ -18,13 +18,11 @@ class KnowledgeBaseController extends Controller
     {
         $query = KnowledgeBase::with('author', 'tags')->latest();
 
-        // Filter dan search jika ada
         if ($request->filled('search')) {
             $query->where('title', 'like', '%' . $request->search . '%')
                   ->orWhere('content', 'like', '%' . $request->search . '%');
         }
 
-        // Filter berdasarkan tag
         if ($request->filled('tag')) {
             $tag = $request->tag;
             $query->whereHas('tags', function ($q) use ($tag) {
@@ -33,9 +31,9 @@ class KnowledgeBaseController extends Controller
         }
 
         $knowledgeBases = $query->paginate(10);
-        $tags = KnowledgeTag::all(); // Ambil semua tags untuk ditampilkan di view
+        $tags = KnowledgeTag::all();
 
-        return view('developer.knowledgebase', compact('knowledgeBases', 'tags')); // Kirim $tags ke view
+        return view('developer.knowledgebase', compact('knowledgeBases', 'tags'));
     }
 
     /**
@@ -45,7 +43,7 @@ class KnowledgeBaseController extends Controller
     public function create()
     {
         $tags = KnowledgeTag::all();
-        return view('developer.knowledgebase-form', ['tags' => $tags]); // Anda perlu membuat view ini
+        return view('developer.knowledgebase-form', ['tags' => $tags]);
     }
 
     /**
@@ -59,7 +57,7 @@ class KnowledgeBaseController extends Controller
             'tags' => 'nullable|array',
             'tags.*' => 'exists:knowledge_tags,id',
             'content' => 'required_if:type,blog,video|nullable|string',
-            'file_path' => 'required_if:type,pdf|nullable|file|mimes:pdf|max:10240', // Max 10MB
+            'file_path' => 'required_if:type,pdf|nullable|file|mimes:pdf|max:10240', 
         ]);
 
         $data = $request->only('title', 'type');

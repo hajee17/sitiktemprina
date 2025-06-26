@@ -27,7 +27,6 @@ class KnowledgeBaseRecommenderService
 
         $ticketText = $ticket->title . ' ' . $ticket->description;
 
-        // 1. Pra-pemrosesan & Vektorisasi (TF-IDF)
         $documents = $knowledgeBases->mapWithKeys(function ($kb) {
             return [$kb->id => $this->preprocess($kb->title . ' ' . $kb->content)];
         });
@@ -41,7 +40,6 @@ class KnowledgeBaseRecommenderService
             return $this->calculateTfIdf($this->calculateTf($doc), $idf);
         });
 
-        // 2. Hitung Skor Kemiripan (Cosine Similarity)
         $scores = $documentTfIdfs->map(function ($docTfIdf, $kbId) use ($ticketTfIdf) {
             return [
                 'kb_id' => $kbId,
@@ -49,7 +47,6 @@ class KnowledgeBaseRecommenderService
             ];
         });
 
-        // 3. Urutkan dan Filter
         $sortedScores = $scores->sortByDesc('score')->values()->all();
 
         $recommendedIds = collect($sortedScores)->pluck('kb_id')->take($limit);
@@ -65,9 +62,9 @@ class KnowledgeBaseRecommenderService
      */
     private function preprocess(string $text): array
     {
-        $text = Str::lower($text); // Jadikan huruf kecil
-        $text = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text); // Hapus tanda baca
-        return preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY); // Pecah jadi array kata
+        $text = Str::lower($text); 
+        $text = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text); 
+        return preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     /**
@@ -87,14 +84,12 @@ class KnowledgeBaseRecommenderService
         $termDocCount = [];
         $idf = [];
 
-        // Hitung berapa banyak dokumen yang mengandung setiap kata unik
         foreach ($documents as $doc) {
             foreach (array_unique($doc) as $term) {
                 $termDocCount[$term] = ($termDocCount[$term] ?? 0) + 1;
             }
         }
         
-        // Hitung skor IDF untuk setiap kata
         foreach ($termDocCount as $term => $count) {
             $idf[$term] = log($docCount / $count);
         }

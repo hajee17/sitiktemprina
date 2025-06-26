@@ -104,7 +104,6 @@
             const allItems = Object.entries(JSON.parse(container.dataset.items)).map(([id, name]) => ({ id: id, name: name }));
             let selectedId = container.dataset.oldValue || '';
 
-            // Initialize input with old value if present
             if (selectedId) {
                 const selectedItem = allItems.find(item => item.id == selectedId);
                 if (selectedItem) {
@@ -115,7 +114,7 @@
 
             const filterItems = () => {
                 const query = input.value.toLowerCase();
-                list.innerHTML = ''; // Clear previous list
+                list.innerHTML = ''; 
 
                 const filtered = allItems.filter(item =>
                     item.name.toLowerCase().includes(query)
@@ -144,16 +143,15 @@
                 hiddenInput.value = id;
                 selectedId = id;
                 list.classList.add('hidden');
-                // Store the selected text in a dataset to avoid filtering when it's the selected text
                 input.dataset.selectedText = name; 
             };
 
             input.addEventListener('focus', () => {
-                filterItems(); // Show all items on focus
+                filterItems();
             });
 
             input.addEventListener('input', () => {
-                delete input.dataset.selectedText; // Clear selected text when typing starts
+                delete input.dataset.selectedText;
                 filterItems();
             });
 

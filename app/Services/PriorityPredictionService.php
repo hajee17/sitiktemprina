@@ -12,7 +12,6 @@ class PriorityPredictionService
 
     public function __construct()
     {
-        // Memuat konfigurasi bobot skor
         $this->config = config('priority');
     }
 
@@ -26,21 +25,14 @@ class PriorityPredictionService
     {
         $score = 0;
         $user = Auth::user();
-
-        // 1. Hitung skor berdasarkan Jabatan/Posisi pengguna
-        $positionId = $user->position_id ?? 1; // Default ke 'Staff' jika tidak ada
+        $positionId = $user->position_id ?? 1; 
         $score += $this->config['positions'][$positionId] ?? 0;
-
-        // 2. Hitung skor berdasarkan SBU
         $sbuId = $request->input('sbu_id');
         $score += $this->config['sbus'][$sbuId] ?? 0;
-
-        // 3. Hitung skor berdasarkan Kata Kunci
         $text = strtolower($request->input('title') . ' ' . $request->input('description'));
         $keywordScore = 0;
         foreach ($this->config['keywords'] as $keyword => $value) {
             if (Str::contains($text, strtolower($keyword))) {
-                // Ambil skor dari kata kunci paling penting yang ditemukan
                 if ($value > $keywordScore) {
                     $keywordScore = $value;
                 }
@@ -48,13 +40,12 @@ class PriorityPredictionService
         }
         $score += $keywordScore;
 
-        // 4. Petakan skor total ke ID Prioritas
         if ($score >= $this->config['thresholds']['tinggi']) {
-            return 1; // Tinggi
+            return 1;
         } elseif ($score >= $this->config['thresholds']['sedang']) {
-            return 2; // Sedang
+            return 2;
         } else {
-            return 3; // Rendah
+            return 3;=
         }
     }
 }

@@ -7,7 +7,7 @@
     @vite('resources/css/app.css')
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
-        /* Optional: Custom scrollbar for better aesthetics */
+
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -23,7 +23,7 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
-        /* Custom styles for mobile sidebar slide-in/out */
+
         .sidebar-mobile-closed {
             transform: translateX(-100%);
         }
@@ -44,30 +44,28 @@
                 Alpine.store('global').isMobile = window.innerWidth < 1024;
                 if (!Alpine.store('global').isMobile) {
                     Alpine.store('global').open = true;
-                    document.body.style.overflow = 'auto'; // Ensure scroll is enabled on desktop
+                    document.body.style.overflow = 'auto'; 
                 } else {
-                    Alpine.store('global').open = false; // Always close sidebar on mobile resize
-                    document.body.style.overflow = 'auto'; // Ensure scroll is auto on mobile resize
+                    Alpine.store('global').open = false; 
+                    document.body.style.overflow = 'auto'; 
                 }
             });
 
-            // Handle initial state for body overflow on page load
             if (Alpine.store('global').isMobile && Alpine.store('global').open) {
                 document.body.style.overflow = 'hidden';
             } else {
                 document.body.style.overflow = 'auto';
             }
 
-            // Watch for changes in sidebar open state on mobile to control body overflow
             Alpine.effect(() => {
                 if (Alpine.store('global').isMobile) {
                     if (Alpine.store('global').open) {
-                        document.body.style.overflow = 'hidden'; // Disable scroll when sidebar is open on mobile
+                        document.body.style.overflow = 'hidden'; 
                     } else {
-                        document.body.style.overflow = 'auto'; // Enable scroll when sidebar is closed on mobile
+                        document.body.style.overflow = 'auto';
                     }
                 } else {
-                    document.body.style.overflow = 'auto'; // Always auto scroll on desktop
+                    document.body.style.overflow = 'auto';
                 }
             });
         });

@@ -114,7 +114,6 @@ class ClickUpApiService
                 'date_updated_gt' => $timestamp
             ]);
             $response->throw();
-            // Mengembalikan array 'tasks' dari respons JSON
             return $response->json()['tasks'] ?? [];
         } catch (\Illuminate\Http\Client\RequestException $e) {
             Log::error("ClickUp API Error (getUpdatedTasks): " . $e->getMessage(), [

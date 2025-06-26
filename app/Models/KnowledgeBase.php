@@ -10,7 +10,6 @@ class KnowledgeBase extends Model
 {
     use HasFactory;
 
-    // PERBAIKAN: Menambahkan 'file_path'
     protected $fillable = ['title', 'content', 'account_id', 'type', 'file_path', 'source_ticket_id'];
 
     public function author()

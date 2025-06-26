@@ -79,7 +79,6 @@
     <div class="container mx-auto px-6 text-center">
         <h2 class="text-3xl font-bold text-gray-800">Siap Menyelesaikan Masalah Anda?</h2>
         <p class="text-gray-600 mt-2 mb-8">Jangan biarkan kendala teknis menghambat produktivitas Anda. Tim kami siap membantu.</p>
-        {{-- PERBAIKAN: Tombol mengarah ke Register --}}
         <a href="{{ route('register') }}" class="inline-block bg-black text-white font-bold text-lg py-3 px-8 rounded-full hover:bg-gray-800 transition-colors">
             Gabung Sekarang
         </a>

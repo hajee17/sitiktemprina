@@ -50,7 +50,6 @@ class SyncExistingTicketsToClickUp extends Command
     {
         $this->info('Memulai proses sinkronisasi tiket ke ClickUp...');
 
-        // 1. Ambil semua tiket yang belum memiliki clickup_task_id
         $ticketsToSync = Ticket::whereNull('clickup_task_id')->get();
 
         if ($ticketsToSync->isEmpty()) {
@@ -60,7 +59,6 @@ class SyncExistingTicketsToClickUp extends Command
 
         $this->info("Ditemukan " . $ticketsToSync->count() . " tiket untuk disinkronkan.");
 
-        // 2. Buat progress bar untuk user experience yang lebih baik
         $bar = $this->output->createProgressBar($ticketsToSync->count());
         $bar->start();
 
@@ -69,14 +67,14 @@ class SyncExistingTicketsToClickUp extends Command
 
         foreach ($ticketsToSync as $ticket) {
             try {
-                // 3. Gunakan service yang sudah ada untuk membuat task
+
                 $success = $this->syncService->syncTicketToClickUp($ticket);
 
                 if ($success) {
                     $successCount++;
                 } else {
                     $failCount++;
-                    // Tulis pesan error kecil di bawah progress bar
+
                     $this->line("\n<error>Gagal menyinkronkan Tiket #{$ticket->id}: {$ticket->title}</error>");
                 }
             } catch (\Exception $e) {
@@ -85,11 +83,9 @@ class SyncExistingTicketsToClickUp extends Command
                 Log::error("Sync Command Error for Ticket #{$ticket->id}: " . $e->getMessage());
             }
 
-            // Majukan progress bar
             $bar->advance();
 
-            // Beri jeda sedikit untuk menghindari rate limit dari API ClickUp
-            usleep(200000); // Jeda 0.2 detik
+            usleep(200000);
         }
 
         $bar->finish();

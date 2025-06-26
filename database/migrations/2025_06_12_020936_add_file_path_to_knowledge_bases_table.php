@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('knowledge_bases', function (Blueprint $table) {
-            // Kolom untuk menyimpan path file PDF atau media lain
             $table->string('file_path')->nullable()->after('content');
         });
     }

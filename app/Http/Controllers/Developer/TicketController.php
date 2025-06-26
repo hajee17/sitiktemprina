@@ -24,20 +24,16 @@ class TicketController extends Controller
                         ->where('status_id', 1) 
                         ->with(['author', 'priority', 'status', 'category', 'sbu', 'department']);
 
-        // Logika Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                // Menggunakan 'ilike' untuk pencarian case-insensitive pada judul
                 $q->where('title', 'ilike', "%{$search}%");
-                // Tambahkan kondisi hanya jika $search adalah numerik untuk kolom ID
                 if (is_numeric($search)) {
-                    $q->orWhere('id', (int)$search); // Pastikan dikonversi ke integer
+                    $q->orWhere('id', (int)$search);
                 }
             });
         }
 
-        // Logika Filter Prioritas
         if ($request->filled('priority_id')) {
             $query->where('priority_id', $request->priority_id);
         }
@@ -50,7 +46,6 @@ class TicketController extends Controller
 
     public function show(Ticket $ticket)
     {
-        // Eager load relasi untuk ditampilkan di view
         $ticket->load(['author.role', 'priority', 'status', 'category', 'sbu', 'department', 'attachments', 'comments.author']);
 
         return view('developer.detail-ticket', compact('ticket'));
@@ -62,7 +57,7 @@ class TicketController extends Controller
     {
         if ($ticket->assignee_id === null && $ticket->status_id == 1) {
             $ticket->assignee_id = Auth::id();
-            $ticket->status_id = 2; // In Progress
+            $ticket->status_id = 2;
             $ticket->save();
             return redirect()->route('developer.myticket')->with('success', 'Tiket berhasil diambil.');
         }
@@ -76,36 +71,29 @@ class TicketController extends Controller
     {
         $query = Ticket::where('assignee_id', Auth::id())
                         ->with(['author', 'priority', 'status', 'category'])
-                        ->where('status_id', '!=', 4); // Bukan yang sudah 'Closed'
-
-        // Logika Search
+                        ->where('status_id', '!=', 4);
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                // Menggunakan 'ilike' untuk pencarian case-insensitive pada judul
                 $q->where('title', 'ilike', "%{$search}%");
-                // Tambahkan kondisi hanya jika $search adalah numerik untuk kolom ID
                 if (is_numeric($search)) {
-                    $q->orWhere('id', (int)$search); // Pastikan dikonversi ke integer
+                    $q->orWhere('id', (int)$search);
                 }
             });
         }
 
-        // Logika Filter Prioritas
         if ($request->filled('priority_id')) {
             $query->where('priority_id', $request->priority_id);
         }
 
-        // Logika Filter Status
         if ($request->filled('status_id')) {
             $query->where('status_id', $request->status_id);
         }
 
         $tickets = $query->latest()->paginate(10)->withQueryString();
 
-        // Data untuk dropdown filter
         $priorities = TicketPriority::all();
-        $statuses = TicketStatus::where('name', '!=', 'Open')->get(); // Status yang relevan untuk tiket yg sedang dikerjakan
+        $statuses = TicketStatus::where('name', '!=', 'Open')->get();
 
         return view('developer.myticket', compact('tickets', 'priorities', 'statuses'));
     }
@@ -115,7 +103,6 @@ class TicketController extends Controller
      */
     public function manageAll(Request $request)
     {
-        // Data Statistik
         $stats = [
             'total_tickets' => Ticket::count(),
             'open' => Ticket::where('status_id', 1)->count(),
@@ -123,27 +110,21 @@ class TicketController extends Controller
             'closed' => Ticket::where('status_id', 4)->count(),
         ];
 
-        // Query utama
         $query = Ticket::with(['author', 'assignee', 'priority', 'status', 'category']);
 
-        // Logika Search
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                // Menggunakan 'ilike' untuk pencarian case-insensitive pada judul
                 $q->where('title', 'ilike', "%{$search}%")
                   ->orWhereHas('author', function($q_author) use ($search) {
-                      // Menggunakan 'ilike' untuk pencarian case-insensitive pada nama author
                       $q_author->where('name', 'ilike', "%{$search}%");
                   });
-                // Tambahkan kondisi hanya jika $search adalah numerik untuk kolom ID
                 if (is_numeric($search)) {
                     $q->orWhere('id', (int)$search);
                 }
             });
         }
 
-        // Logika Filter Status
         if ($request->filled('status_id')) {
             $query->where('status_id', $request->status_id);
         }
@@ -172,7 +153,6 @@ class TicketController extends Controller
             'create_knowledge_base' => 'nullable|boolean',
         ]);
 
-        // Logika untuk menyimpan komentar (ini tidak berubah)
         if ($request->filled('comment') || $request->hasFile('comment_file')) {
             $filePath = null;
             if ($request->hasFile('comment_file')) {
@@ -195,7 +175,6 @@ class TicketController extends Controller
 
         $isClosing = \App\Models\TicketStatus::find($validated['status_id'])->name === 'Closed';
 
-        // Logika pembuatan KB disederhanakan (ini tidak berubah)
         if ($isClosing && $request->boolean('create_knowledge_base')) {
             if (!$ticket->knowledgeBaseArticle()->exists()) {
                 $solutionContent = $validated['comment'] ?? $ticket->description;
@@ -216,12 +195,10 @@ class TicketController extends Controller
         }
 
         if ($isClosing) {
-            // Arahkan ke halaman daftar tiket aktif (myticket), di mana tiket ini sudah tidak ada lagi.
             return redirect()->route('developer.myticket')
                              ->with('success', 'Tiket #' . $ticket->id . ' telah berhasil ditutup.');
         }
 
-        // Jika statusnya lain, tetap di halaman detail tiket.
         return redirect()->route('developer.tickets.show', $ticket->id)
                          ->with('success', 'Tiket berhasil diperbarui.');
 

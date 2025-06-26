@@ -21,7 +21,6 @@ class KnowledgeBaseFactory extends Factory
             'title' => fake()->sentence(),
             'content' => fake()->text(1000),
             'account_id' => $developerIds->random(),
-            // Kolom 'tags' tidak ada lagi di sini
         ];
     }
 
@@ -32,10 +31,8 @@ class KnowledgeBaseFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (KnowledgeBase $knowledgeBase) {
-            // 1. Ambil 1 sampai 3 ID tag secara acak dari database
             $tagIds = KnowledgeTag::inRandomOrder()->limit(rand(1, 3))->pluck('id');
 
-            // 2. Lampirkan tag-tag tersebut ke knowledge base yang baru dibuat
             $knowledgeBase->tags()->attach($tagIds);
         });
     }

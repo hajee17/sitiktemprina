@@ -49,12 +49,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/tickets/{ticket}', [UserTicketController::class, 'show'])->name('tickets.show');
         Route::post('/tickets/{ticket}/cancel', [UserTicketController::class, 'cancel'])->name('tickets.cancel');
         Route::post('/tickets/{ticket}/comments', [TicketCommentController::class, 'store'])->name('comments.store');
-        
-        // Rute untuk Knowledge Base
+
         Route::get('/knowledgebase', [UserKnowledgeBaseController::class, 'index'])->name('knowledgebase.index');
         Route::get('/knowledgebase/{knowledgeBase}', [UserKnowledgeBaseController::class, 'show'])->name('knowledgebase.show');
 
-        // Rute untuk Halaman Lainnya
         Route::get('/my-account', [UserPageController::class, 'myAccount'])->name('account');
         Route::get('/faq', [UserPageController::class, 'faq'])->name('faq');
 

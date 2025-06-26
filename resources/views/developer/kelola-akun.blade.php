@@ -225,7 +225,6 @@
         })
         .then(response => {
             if (!response.ok) {
-                // Tangani error HTTP seperti 422 (Validasi)
                 return response.json().then(errorData => {
                     throw errorData;
                 });
@@ -260,7 +259,6 @@
         });
     }
 
-    // Pastikan modal muncul jika ada error validasi saat reload
     @if($errors->any())
         document.getElementById('modal-tambah').classList.remove('hidden');
     @endif

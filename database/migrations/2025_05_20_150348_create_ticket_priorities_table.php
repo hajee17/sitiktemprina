@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('ticket_priorities', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // tinggi, sedang, rendah
-            $table->unsignedTinyInteger('level'); // e.g. 1 = tinggi, 2 = sedang, 3 = rendah
+            $table->string('name');
+            $table->unsignedTinyInteger('level');
             $table->timestamps();
         });
     }
