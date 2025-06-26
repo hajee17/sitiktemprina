@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ClickUpSyncService;
 
 class TicketCommentController extends Controller
 {
@@ -28,7 +29,7 @@ class TicketCommentController extends Controller
             'message' => $request->message ?? '',
             'file_path' => $filePath,
         ]);
-
+        $clickUpSyncService->addCommentToClickUpTask($comment);
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 }

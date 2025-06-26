@@ -18,53 +18,65 @@
 
     <form action="{{ route('user.tickets.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
-        
-        <!-- Sub Bisnis Unit -->
+
         <div>
-            <label for="sbu_id" class="block font-semibold text-gray-700 mb-1">Sub Bisnis Unit*</label>
-            <select id="sbu_id" name="sbu_id" required class="w-full border border-gray-300 rounded-lg p-3">
-                <option value="">Pilih Sub Bisnis Unit Anda</option>
-                @foreach ($sbus as $id => $name)
-                    <option value="{{ $id }}" {{ old('sbu_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                @endforeach
-            </select>
+            <label for="sbu_input" class="block font-semibold text-gray-700 mb-1">Sub Bisnis Unit*</label>
+            <div class="relative combobox-container" data-name="sbu_id" data-items="{{ json_encode($sbus) }}" data-old-value="{{ old('sbu_id') }}">
+                <input type="hidden" name="sbu_id" class="combobox-hidden-input">
+                <input
+                    type="text"
+                    id="sbu_input"
+                    class="w-full border border-gray-300 rounded-lg p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 combobox-input"
+                    placeholder="Pilih Sub Bisnis Unit Anda"
+                    autocomplete="off"
+                >
+                <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto mt-1 hidden combobox-list">
+                    </ul>
+            </div>
         </div>
 
-        <!-- Divisi -->
         <div>
-            <label for="department_id" class="block font-semibold text-gray-700 mb-1">Divisi / Departemen*</label>
-            <select id="department_id" name="department_id" required class="w-full border border-gray-300 rounded-lg p-3">
-                <option value="">Pilih Divisi / Departemen Anda</option>
-                @foreach ($departments as $id => $name)
-                    <option value="{{ $id }}" {{ old('department_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                @endforeach
-            </select>
+            <label for="department_input" class="block font-semibold text-gray-700 mb-1">Divisi / Departemen*</label>
+            <div class="relative combobox-container" data-name="department_id" data-items="{{ json_encode($departments) }}" data-old-value="{{ old('department_id') }}">
+                <input type="hidden" name="department_id" class="combobox-hidden-input">
+                <input
+                    type="text"
+                    id="department_input"
+                    class="w-full border border-gray-300 rounded-lg p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 combobox-input"
+                    placeholder="Pilih Divisi / Departemen Anda"
+                    autocomplete="off"
+                >
+                <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto mt-1 hidden combobox-list">
+                    </ul>
+            </div>
         </div>
 
-        <!-- Judul Tiket -->
         <div>
             <label for="title" class="block font-semibold text-gray-700 mb-1">Judul Tiket*</label>
             <input type="text" id="title" name="title" value="{{ old('title') }}" required class="w-full border border-gray-300 rounded-lg p-3">
         </div>
 
-        <!-- Kategori -->
         <div>
-            <label for="category_id" class="block font-semibold text-gray-700 mb-1">Kategori Tiket*</label>
-            <select id="category_id" name="category_id" required class="w-full border border-gray-300 rounded-lg p-3">
-                <option value="">Pilih Kategori Tiket</option>
-                @foreach ($categories as $id => $name)
-                    <option value="{{ $id }}" {{ old('category_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
-                @endforeach
-            </select>
+            <label for="category_input" class="block font-semibold text-gray-700 mb-1">Kategori Tiket*</label>
+            <div class="relative combobox-container" data-name="category_id" data-items="{{ json_encode($categories) }}" data-old-value="{{ old('category_id') }}">
+                <input type="hidden" name="category_id" class="combobox-hidden-input">
+                <input
+                    type="text"
+                    id="category_input"
+                    class="w-full border border-gray-300 rounded-lg p-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 combobox-input"
+                    placeholder="Pilih Kategori Tiket"
+                    autocomplete="off"
+                >
+                <ul class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto mt-1 hidden combobox-list">
+                    </ul>
+            </div>
         </div>
 
-        <!-- Deskripsi -->
         <div>
             <label for="description" class="block font-semibold text-gray-700 mb-1">Deskripsi Masalah*</label>
             <textarea id="description" name="description" rows="5" required class="w-full border border-gray-300 rounded-lg p-3 resize-none" placeholder="Jelaskan masalah yang Anda alami secara detail.">{{ old('description') }}</textarea>
         </div>
 
-        <!-- Lampiran -->
         <div>
             <label for="attachments" class="block font-semibold text-gray-700 mb-1">Lampirkan Bukti (Opsional)</label>
             <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
@@ -79,4 +91,85 @@
         </div>
     </form>
 </div>
+
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.combobox-container').forEach(container => {
+            const hiddenInput = container.querySelector('.combobox-hidden-input');
+            const input = container.querySelector('.combobox-input');
+            const list = container.querySelector('.combobox-list');
+            const allItems = Object.entries(JSON.parse(container.dataset.items)).map(([id, name]) => ({ id: id, name: name }));
+            let selectedId = container.dataset.oldValue || '';
+
+            // Initialize input with old value if present
+            if (selectedId) {
+                const selectedItem = allItems.find(item => item.id == selectedId);
+                if (selectedItem) {
+                    input.value = selectedItem.name;
+                    hiddenInput.value = selectedItem.id;
+                }
+            }
+
+            const filterItems = () => {
+                const query = input.value.toLowerCase();
+                list.innerHTML = ''; // Clear previous list
+
+                const filtered = allItems.filter(item =>
+                    item.name.toLowerCase().includes(query)
+                );
+
+                if (filtered.length > 0 && query !== input.dataset.selectedText) {
+                    filtered.forEach(item => {
+                        const listItem = document.createElement('li');
+                        listItem.classList.add('p-3', 'cursor-pointer', 'hover:bg-blue-500', 'hover:text-white');
+                        if (selectedId == item.id) {
+                            listItem.classList.add('bg-blue-600', 'text-white');
+                        }
+                        listItem.textContent = item.name;
+                        listItem.dataset.id = item.id;
+                        listItem.dataset.name = item.name;
+                        list.appendChild(listItem);
+                    });
+                    list.classList.remove('hidden');
+                } else {
+                    list.classList.add('hidden');
+                }
+            };
+
+            const selectItem = (id, name) => {
+                input.value = name;
+                hiddenInput.value = id;
+                selectedId = id;
+                list.classList.add('hidden');
+                // Store the selected text in a dataset to avoid filtering when it's the selected text
+                input.dataset.selectedText = name; 
+            };
+
+            input.addEventListener('focus', () => {
+                filterItems(); // Show all items on focus
+            });
+
+            input.addEventListener('input', () => {
+                delete input.dataset.selectedText; // Clear selected text when typing starts
+                filterItems();
+            });
+
+            list.addEventListener('click', (event) => {
+                const clickedItem = event.target.closest('li');
+                if (clickedItem && clickedItem.dataset.id && clickedItem.dataset.name) {
+                    selectItem(clickedItem.dataset.id, clickedItem.dataset.name);
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!container.contains(event.target)) {
+                    list.classList.add('hidden');
+                }
+            });
+        });
+    });
+</script>
+@endpush

@@ -19,6 +19,8 @@ class Ticket extends Model
         'priority_id',
         'sbu_id',
         'department_id',
+        'assignee_id',
+        'clickup_task_id',
     ];
 
     public function author()

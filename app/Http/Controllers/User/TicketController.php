@@ -15,6 +15,7 @@ use App\Models\Sbu;
 use App\Models\TicketAttachment;
 use App\Services\PriorityPredictionService;
 use App\Services\KnowledgeBaseRecommenderService;
+use App\Services\ClickUpSyncService; 
 
 class TicketController extends Controller
 {
@@ -48,7 +49,10 @@ class TicketController extends Controller
     /**
      * Menyimpan tiket baru ke database.
      */
-    public function store(Request $request, PriorityPredictionService $priorityService)
+    public function store(
+        Request $request, 
+        PriorityPredictionService $priorityService,
+        ClickUpSyncService $clickUpSyncService)
     {
         $validatedData = $request->validate([
             'sbu_id' => 'required|exists:sbus,id',
@@ -90,6 +94,8 @@ class TicketController extends Controller
                 ]);
             }
         }
+
+        $clickUpSyncService->syncTicketToClickUp($ticket);
         
         return redirect()->route('user.tickets.index')->with('success', 'Tiket Anda berhasil dibuat!');
     }

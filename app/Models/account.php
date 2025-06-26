@@ -46,7 +46,7 @@ class Account extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Otomatis hash password saat diset
+        'password' => 'hashed', 
     ];
 
     // --- RELASI ---

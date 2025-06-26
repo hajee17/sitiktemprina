@@ -17,28 +17,23 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
-        // Statistik
-        // PERBAIKAN DI SINI: Gunakan whereHas untuk menghitung berdasarkan nama role
         $userCounts = [
             'Developer' => Account::whereHas('role', function($query) {
-                $query->where('name', 'developer'); // Pastikan 'Developer' sesuai dengan nama role di DB
+                $query->where('name', 'developer'); 
             })->count(),
             'User' => Account::whereHas('role', function($query) {
-                $query->where('name', 'user');     // Pastikan 'User' sesuai dengan nama role di DB
+                $query->where('name', 'user');    
             })->count(),
-            // Anda bisa menambahkan statistik lain jika ada
+           
         ];
-        $query = Account::with('role'); // Eager load relasi role
+        $query = Account::with('role'); 
 
-        // Logika Pencarian (menggunakan 'ilike' untuk case-insensitive)
-        if ($request->filled('search')) {
+       
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%") // Pencarian nama
                   ->orWhere('email', 'ilike', "%{$search}%") // Pencarian email
-                  ->orWhere('username', 'ilike', "%{$search}%"); // Pencarian username (jika ada)
-
-                // Opsional: Jika Anda ingin mencari ID juga dan inputnya adalah numerik
+                  ->orWhere('username', 'ilike', "%{$search}%"); // Pencarian username 
                 if (is_numeric($search)) {
                     $q->orWhere('id', (int)$search);
                 }
@@ -46,7 +41,6 @@ class AccountController extends Controller
         }
 
         // Logika Filter Role
-        // Memastikan role_id ada, tidak null, dan tidak kosong string (dari value="")
         if ($request->filled('role_id') && $request->role_id !== null && $request->role_id !== '') {
             $query->where('role_id', $request->role_id);
         }
@@ -68,19 +62,18 @@ class AccountController extends Controller
         $request->validate([
             'Name' => 'required|string|max:255',
             'Email' => 'required|email|unique:accounts,email',
-            'Telp_Num' => 'nullable|string|max:20', // Batasi panjang nomor telepon
-            'password' => 'required|string|min:8|confirmed', // Menambahkan validasi password dan konfirmasi
+            'Telp_Num' => 'nullable|string|max:13', 
+            'password' => 'required|string|min:8|confirmed',
             'ID_Role' => 'required|exists:roles,id',
         ]);
 
         Account::create([
             'name' => $request->Name,
-            // Membuat username dari email, pastikan unik atau tambahkan logika lebih kuat
-            'username' => strtolower(explode('@', $request->Email)[0] . substr(uniqid(), -4)), // Gunakan uniqid untuk keunikan
+            'username' => strtolower(explode('@', $request->Email)[0] . substr(uniqid(), -4)), 
             'email' => $request->Email,
             'phone' => $request->Telp_Num,
             'role_id' => $request->ID_Role,
-            'password' => Hash::make($request->password), // Hash password yang diinput user
+            'password' => Hash::make($request->password), 
         ]);
 
         return back()->with('success', 'User baru berhasil ditambahkan.');
@@ -89,7 +82,7 @@ class AccountController extends Controller
     /**
      * Mengupdate akun dari inline edit (AJAX).
      */
-    public function update(Request $request, Account $account) // Menggunakan Route Model Binding
+    public function update(Request $request, Account $account) 
     {
         $validatedData = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -97,26 +90,25 @@ class AccountController extends Controller
                 'sometimes',
                 'required',
                 'email',
-                // Rule unique yang mengabaikan email akun yang sedang diupdate
                 Rule::unique('accounts', 'email')->ignore($account->id),
             ],
-            'phone' => 'sometimes|nullable|string|max:20', // Batasi panjang nomor telepon
-            'ID_Role' => 'sometimes|required|exists:roles,id', // 'ID_Role' adalah nama input di frontend
+            'phone' => 'sometimes|nullable|string|max:13', 
+            'ID_Role' => 'sometimes|required|exists:roles,id', 
         ]);
 
-        // Perbaikan: gunakan nama kolom database yang benar untuk update
+       
         $account->update([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
-            'phone' => $validatedData['phone'] ?? null, // Simpan null jika input phone kosong
-            'role_id' => $validatedData['ID_Role'], // 'role_id' adalah kolom di database
+            'phone' => $validatedData['phone'] ?? null, 
+            'role_id' => $validatedData['ID_Role'], 
         ]);
 
         // Mengembalikan response JSON, memuat ulang relasi 'role' untuk data terbaru
         return response()->json([
             'success' => true,
             'message' => 'Akun berhasil diperbarui.',
-            'data' => $account->load('role') // Kirim kembali data akun yang sudah diupdate, termasuk nama role
+            'data' => $account->load('role')
         ]);
     }
 
@@ -125,7 +117,6 @@ class AccountController extends Controller
      */
     public function destroy(Account $account)
     {
-        // Pencegahan agar user tidak menghapus akunnya sendiri
         if ($account->id === Auth::id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
         }

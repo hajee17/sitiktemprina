@@ -11,6 +11,7 @@ use App\Models\TicketStatus;
 use App\Models\TicketPriority;
 use App\Models\KnowledgeBase;
 use App\Models\KnowledgeTag;
+use App\Services\ClickUpSyncService;
 
 class TicketController extends Controller
 {
@@ -20,7 +21,7 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         $query = Ticket::whereNull('assignee_id')
-                        ->where('status_id', 1) // Hanya tiket 'Open'
+                        ->where('status_id', 1) 
                         ->with(['author', 'priority', 'status', 'category', 'sbu', 'department']);
 
         // Logika Search
@@ -161,7 +162,7 @@ class TicketController extends Controller
     /**
      * Update tiket dari modal.
      */
-    public function update(Request $request, Ticket $ticket)
+    public function update(Request $request, Ticket $ticket, ClickUpSyncService $clickUpSyncService)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -182,10 +183,15 @@ class TicketController extends Controller
                 'message' => $validated['comment'] ?? '',
                 'file_path' => $filePath,
             ]);
+            $comment='hello';
+            $clickUpSyncService->addCommentToClickUpTask($comment);
         }
 
         $ticket->status_id = $validated['status_id'];
         $ticket->save();
+        if ($ticket->clickup_task_id || $oldStatusId !== $ticket->status_id) {
+             $clickUpSyncService->syncTicketToClickUp($ticket);
+        }
 
         $isClosing = \App\Models\TicketStatus::find($validated['status_id'])->name === 'Closed';
 

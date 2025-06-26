@@ -9,7 +9,7 @@ class TicketComment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['message', 'ticket_id', 'account_id', 'file_path'];
+    protected $fillable = ['message', 'ticket_id', 'account_id', 'file_path', 'clickup_comment_id'];
 
     /**
      * Mendapatkan tiket tempat komentar ini berada.
